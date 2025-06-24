@@ -52,4 +52,4 @@ if __name__ == "__main__":
         # Save the data to a file
         for i, (coeff, sol) in enumerate(data):
             os.makedirs(os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEData", msh_filename[:-4]), exist_ok=True)
-            np.savez(os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEDdata", msh_filename[:-4], f"coeff_{coeff:.4f}.npz"), rhs=np.array(coeff), sol=sol, coords=coords)
+            np.savez(os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEData", msh_filename[:-4], f"coeff_{coeff:.4f}.npz"), rhs=np.array(coeff), sol=sol, coords=coords)
