@@ -1,0 +1,30 @@
+{
+    "Description":"Solve Poisson equation on 2D meshes",
+    "dataset_name": "unit_square_with_holes",
+    "SDFDataGenerator":"path/to/sdf_data_generator",
+    "PDEDataGenerator":"path/to/pde_data_generator",
+    "root_dir": "data",
+    "SDFData":{
+        "num_samples": 0,
+        "min_hole": 1,
+        "max_hole": 3,
+        "min_radius": 0.05,
+        "save_format": ["msh", "npz"],
+        "query_range": {
+            "x": [0, 1.0],
+            "y": [0, 1.0],
+            "z": [0, 0]
+        },
+        "SamplesPerScene": 10201
+    },
+    "PDEData":{
+        "n_coeffs":10,
+        "bc_val":0.0,
+        "rhs":"lambda x,y: sin(y * x[0]) * sin(y * x[1])"
+        
+    },
+    "Split":{
+        "train_proportion": 0.8,
+        "split_path": "examples/splits/"
+        }
+}

@@ -1,0 +1,54 @@
+import json 
+import numpy as np
+import random
+import argparse
+import os 
+from data_generators.Poisson2D_random_shape import Poisson2D_random_shape
+
+from firedrake import *
+
+if __name__ == "__main__":
+    
+    parser = argparse.ArgumentParser(description="Generate 2D Poisson data with random shapes.")
+    parser.add_argument(
+        "--experiment_directory",
+        "-e",
+        dest="experiment_directory",
+        required=True,
+        help="The experiment directory. This directory should include specifications file 'specs.json' and 'specs_data.json'."
+    )
+    args = parser.parse_args()
+
+    specs_filename = f"{args.experiment_directory}/specs.json"
+    specs_data_filename = f"{args.experiment_directory}/specs_data.json"
+
+    with open(specs_filename, "r") as f:
+        specs = json.load(f)
+
+    with open(specs_data_filename, "r") as f:
+        specs_data = json.load(f)
+
+
+    msh_filenames = os.listdir(os.path.join(specs_data["root_dir"], specs_data["dataset_name"],"msh"))
+    msh_filenames = [f for f in msh_filenames if f.endswith(".msh")]
+
+    for msh_filename in msh_filenames:
+        mesh = Mesh(os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "msh", msh_filename))
+
+        coords = mesh.coordinates.dat.data
+        rhs = eval(specs_data["PDEData"]["rhs"])
+
+        coeffs = [1.0] if specs_data["PDEData"]["n_coeffs"] == 1 else [random.uniform(0.0, 2.0) for _ in range(specs_data["PDEData"]["n_coeffs"])]
+
+        data_gen = Poisson2D_random_shape(
+            mesh,
+            coeffs=coeffs,
+            rhs=rhs,
+            bc_val=specs_data["PDEData"]["bc_val"],
+        )
+        data = data_gen.create_data()
+
+        # Save the data to a file
+        for i, (coeff, sol) in enumerate(data):
+            os.makedirs(os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEData", msh_filename[:-4]), exist_ok=True)
+            np.savez(os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEDdata", msh_filename[:-4], f"coeff_{coeff:.4f}.npz"), rhs=np.array(coeff), sol=sol, coords=coords)
