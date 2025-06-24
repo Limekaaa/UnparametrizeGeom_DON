@@ -19,12 +19,13 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    specs_filename = f"{args.experiment_directory}/specs.json"
+    #specs_filename = f"{args.experiment_directory}/specs.json"
     specs_data_filename = f"{args.experiment_directory}/specs_data.json"
 
+    """
     with open(specs_filename, "r") as f:
         specs = json.load(f)
-
+    """
     with open(specs_data_filename, "r") as f:
         specs_data = json.load(f)
 
