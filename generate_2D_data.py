@@ -53,3 +53,14 @@ if __name__ == "__main__":
         for i, (coeff, sol) in enumerate(data):
             os.makedirs(os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEData", msh_filename[:-4]), exist_ok=True)
             np.savez(os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEData", msh_filename[:-4], f"coeff_{coeff:.4f}.npz"), rhs=np.array(coeff), sol=sol, coords=coords)
+
+    train_msh_filenames = random.sample(msh_filenames, int(len(msh_filenames) * specs_data["Split"]["train_proportion"]))
+    test_msh_filenames = [f for f in msh_filenames if f not in train_msh_filenames]
+
+    os.makedirs(specs_data["Split"]["split_path"], exist_ok=True)
+    
+    train_dict = {specs_data["dataset_name"]: {"PDEData": [train_msh_filenames[:-4]]}}
+    test_dict = {specs_data["dataset_name"]: {"PDEData": [test_msh_filenames[:-4]]}}
+
+    json.dump(train_dict, open(os.path.join(specs_data["Split"]["split_path"], f"{specs_data["dataset_name"]}_train.json"), "w"), indent=4)
+    json.dump(test_dict, open(os.path.join(specs_data["Split"]["split_path"], f"{specs_data["dataset_name"]}_test.json"), "w"), indent=4)
