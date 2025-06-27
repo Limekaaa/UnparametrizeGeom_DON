@@ -1,0 +1,62 @@
+{
+    "Description": "Solve Poisson equation on 2D meshes",
+    "experiment_name": "unit_squares_1_3_holes",
+    "DataSource" : "data",
+    "DeepSDFTrainSplit":"experiments/splits/unit_square_with_holes_train_npz.json",
+    "DeepSDFTestSplit":"experiments/splits/unit_square_with_holes_test_npz.json",
+    "PDETrainSplit" : "experiments/splits/unit_square_with_holes_train.json",
+    "PDETestSplit" : "experiments/splits/unit_square_with_holes_test.json",
+    "DeepSDFDecoder":{
+        "NetworkArch": "deep_sdf_decoder",
+        "NetworkSpecs" : {
+            "dims" : [128, 128, 128, 128],
+            "dropout" : [0, 1, 2, 3],
+            "dropout_prob" : 0.2,
+            "norm_layers" : [0, 1, 2, 3],
+            "latent_in" : [2],
+            "xyz_in_all" : false,
+            "use_tanh" : true,
+            "latent_dropout" : false,
+            "weight_norm" : true
+        },
+        "CodeLength" : 32,
+        "CodeInitStdDev": 0.01,
+        "ClampingDistance": 1.0,
+        "ToTrain": false,
+        "LatentVectors": {
+            "checkpoint": "latest",
+            "num_iterations": 800,
+            "lr": 0.005,
+            "CodeRegularization" : true
+        },
+        "SamplesPerScene" : 10201
+    },
+    "DeepONet":{
+        "NetworkArch": "DeepOnet2DGeometry",
+        "NetworkSpecs" : {
+            "num_branch_inputs": 1,
+            "num_basis_functions": 32,
+            "num_trunk_inputs": 34,
+            "branch_dims": [128, 128, 128, 128],
+            "trunk_dims": [128, 128, 128, 128]
+        },
+        "ToTrain": true,
+        "ScenesPerBatch" : 64,
+        "DataLoaderThreads" : 0,
+        "NumEpochs" : 2000,
+        "SnapshotFrequency" : 100,
+        "AdditionalSnapshots" : [ 50 ],
+        "LearningRateSchedule" : {
+            "Type" : "Step",
+            "Initial" : 0.0005,
+            "Interval" : 500,
+            "Factor" : 0.5
+        }
+    }
+
+
+
+
+    
+    
+}

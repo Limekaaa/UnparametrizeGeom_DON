@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-class DeepONet2DGeometry(nn.Module):
+class DeepONet(nn.Module):
     """
     DeepONet for 2D geometry problems.
     
@@ -15,27 +15,27 @@ class DeepONet2DGeometry(nn.Module):
         hidden_dim (int): Dimension of the hidden layers.
     """
     
-    def __init__(self, num_branch_inputs:int, num_basis_functions:int, num_trunk_inputs:int, num_hidden_layers=3, hidden_dim=64):
-        super(DeepONet2DGeometry, self).__init__()
+    def __init__(self, num_branch_inputs:int, num_basis_functions:int, num_trunk_inputs:int, branch_dims:list, trunk_dims:list):
+        super(DeepONet, self).__init__()
         self.num_basis_functions = num_basis_functions
         self.num_branch_inputs = num_branch_inputs
         self.num_trunk_inputs = num_trunk_inputs
-        self.num_hidden_layers = num_hidden_layers
-        self.hidden_dim = hidden_dim
+        self.branch_dims = branch_dims
+        self.trunk_dims = trunk_dims
         # Branch network
         self.branch_net = nn.Sequential(
-            nn.Linear(num_branch_inputs, hidden_dim),
+            nn.Linear(num_branch_inputs, branch_dims[0]),
             nn.ReLU(),
-            *[nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU()) for _ in range(num_hidden_layers - 1)],
-            nn.Linear(hidden_dim, num_basis_functions)
+            *[nn.Sequential(nn.Linear(branch_dims[i], branch_dims[i + 1]), nn.ReLU()) for i in range(len(branch_dims) - 1)],
+            nn.Linear(branch_dims[-1], num_basis_functions)
         )
         
         # Trunk network
         self.trunk_net = nn.Sequential(
-            nn.Linear(num_trunk_inputs, hidden_dim),
+            nn.Linear(num_trunk_inputs, trunk_dims[0]),
             nn.ReLU(),
-            *[nn.Sequential(nn.Linear(hidden_dim, hidden_dim), nn.ReLU()) for _ in range(num_hidden_layers - 1)],
-            nn.Linear(hidden_dim, num_basis_functions)
+            *[nn.Sequential(nn.Linear(trunk_dims[i], trunk_dims[i + 1]), nn.ReLU()) for i in range(len(trunk_dims) - 1)],
+            nn.Linear(trunk_dims[-1], num_basis_functions)
         )
 
     def forward(self, branch_input, trunk_input):
