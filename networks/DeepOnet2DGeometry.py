@@ -51,11 +51,12 @@ class DeepONet(nn.Module):
         """
         # Pass through branch network
         branch_output = self.branch_net(branch_input)
-
+        #print("Branch output shape:", branch_output.shape)
         # Pass through trunk network
         trunk_output = self.trunk_net(trunk_input)
+        #print("Trunk output shape:", trunk_output.shape)
 
-        out = torch.sum(branch_output * trunk_output, 1) / math.sqrt(self.num_basis_functions) # peut être ajouter ,1 dans la somme pour que la somme se fasse sur les colonnes
+        out = torch.sum(branch_output * trunk_output, -1) / math.sqrt(self.num_basis_functions) # peut être ajouter ,1 dans la somme pour que la somme se fasse sur les colonnes
         out = out.unsqueeze(1)
 
         return out

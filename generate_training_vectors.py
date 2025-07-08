@@ -16,6 +16,7 @@ import time
 
 import UDON.workspace as ws
 
+
 if __name__ == "__main__":
     import argparse
 
@@ -42,7 +43,30 @@ if __name__ == "__main__":
         help="The data split to use (train, test)"
     )
 
+    arg_parser.add_argument(
+        "--log-level",
+        "-l",
+        dest="log_level",
+        default="INFO",
+        choices=["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"],
+        help="Set the logging level (default: INFO)",
+    )
+
+
     args = arg_parser.parse_args()
+
+    if args.log_level == "DEBUG":
+        logging.basicConfig(level=logging.DEBUG)
+    elif args.log_level == "INFO":
+        logging.basicConfig(level=logging.INFO)
+    elif args.log_level == "WARNING":
+        logging.basicConfig(level=logging.WARNING)
+    elif args.log_level == "ERROR":
+        logging.basicConfig(level=logging.ERROR)
+    elif args.log_level == "CRITICAL":
+        logging.basicConfig(level=logging.CRITICAL)
+    else:
+        raise ValueError("Unknown log level: {}".format(args.log_level))
 
     specs = json.load(open(os.path.join(args.experiment_directory, "specs.json"), "r"))
 

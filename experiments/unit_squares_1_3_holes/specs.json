@@ -35,7 +35,7 @@
         "NetworkArch": "DeepOnet2DGeometry",
         "NetworkSpecs" : {
             "num_branch_inputs": 1,
-            "num_basis_functions": 32,
+            "num_basis_functions": 128,
             "num_trunk_inputs": 34,
             "branch_dims": [128, 128, 128, 128],
             "trunk_dims": [128, 128, 128, 128]
@@ -46,17 +46,15 @@
         "NumEpochs" : 2000,
         "SnapshotFrequency" : 100,
         "AdditionalSnapshots" : [ 50 ],
-        "LearningRateSchedule" : {
+        "SamplesPerScene": 200,
+        "LearningRateSchedule" : [
+            {
             "Type" : "Step",
             "Initial" : 0.0005,
             "Interval" : 500,
             "Factor" : 0.5
-        }
+            }
+        ]
     }
-
-
-
-
-    
-    
+   
 }

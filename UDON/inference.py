@@ -101,12 +101,12 @@ def reconstruct(
 
         if e % 50 == 0:
             logging.debug(loss.cpu().data.numpy())
-            print(f"loss: {loss.cpu().data.numpy()}")
+            logging.info(f"loss: {loss.cpu().data.numpy()}")
             logging.debug(e)
             logging.debug(latent.norm())
         loss_num = loss.cpu().data.numpy()
 
-    print(f"Final loss: {loss_num}")
+    logging.info(f"Final loss: {loss_num}")
     #return loss_num, latent
     #return loss_num, latent_code(torch.tensor([0]).cuda())  # Return the latent code from the embedding
     return loss_num, latent_code(torch.tensor([0]).to(device))  # Return the latent code from the embedding
