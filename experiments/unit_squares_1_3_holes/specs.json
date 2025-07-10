@@ -6,6 +6,7 @@
     "DeepSDFTestSplit":"experiments/splits/unit_square_with_holes_test_npz.json",
     "PDETrainSplit" : "experiments/splits/unit_square_with_holes_train.json",
     "PDETestSplit" : "experiments/splits/unit_square_with_holes_test.json",
+    "LogFrequency" : 10,
     "DeepSDFDecoder":{
         "NetworkArch": "deep_sdf_decoder",
         "NetworkSpecs" : {
@@ -32,13 +33,18 @@
         "SamplesPerScene" : 10201
     },
     "DeepONet":{
-        "NetworkArch": "DeepOnet2DGeometry",
+        "NetworkArch": "DeepONet2DGeometry_upgraded",
         "NetworkSpecs" : {
             "num_branch_inputs": 1,
             "num_basis_functions": 128,
             "num_trunk_inputs": 34,
             "branch_dims": [128, 128, 128, 128],
-            "trunk_dims": [128, 128, 128, 128]
+            "trunk_dims": [128, 128, 128, 128],
+            "dropout":[[], []],
+            "dropout_prob": 0.2,
+            "norm_layers": [[0, 1, 2, 3], [0, 1, 2, 3]],
+            "latent_in": [2],
+            "weight_norm": true
         },
         "ToTrain": true,
         "ScenesPerBatch" : 64,
@@ -47,6 +53,7 @@
         "SnapshotFrequency" : 100,
         "AdditionalSnapshots" : [ 50 ],
         "SamplesPerScene": 200,
+        "L2_regularization": 0.0001,
         "LearningRateSchedule" : [
             {
             "Type" : "Step",

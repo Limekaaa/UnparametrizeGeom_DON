@@ -160,10 +160,8 @@ class PDESamples(torch.utils.data.Dataset):
             coords = torch.from_numpy(data["coords"])
             sol = torch.from_numpy(data["sol"]).reshape(-1, 1)
             rhs = rhs.repeat(sol.shape[0], 1)
-            lat_vectors = torch.load(os.path.join(ws.experiment_folder, ws.specs["experiment_name"],ws.deep_sdf_folder, ws.latent_vectors_folder, ws.model_to_use, ws.split, self.shapes_names[idx] + ".pth"), weights_only=False)
-            lat_vectors = lat_vectors.repeat(sol.shape[0], 1)
-
-
+            lat_vectors = torch.load(os.path.join(ws.experiment_folder, ws.specs["experiment_name"],ws.deep_sdf_folder, ws.latent_vectors_folder, ws.deepsdf_model, ws.split, self.shapes_names[idx] + ".pth"), weights_only=False)
+            lat_vectors = lat_vectors.repeat(sol.shape[0], 1).to("cpu")
 
             if self.subsample is not None:
                 rand_idxs = torch.randperm(rhs.shape[0])[:self.subsample]
@@ -171,6 +169,8 @@ class PDESamples(torch.utils.data.Dataset):
                 coords = coords[rand_idxs]
                 sol = sol[rand_idxs]
                 lat_vectors = lat_vectors[rand_idxs]
+
+            #print(lat_vectors.get_device(), coords.get_device(), rhs.get_device(), sol.get_device())
 
             #print(torch.cat((lat_vectors, coords, rhs, sol), dim=1).float().shape)
                 

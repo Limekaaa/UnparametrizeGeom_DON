@@ -110,3 +110,5 @@ def reconstruct(
     #return loss_num, latent
     #return loss_num, latent_code(torch.tensor([0]).cuda())  # Return the latent code from the embedding
     return loss_num, latent_code(torch.tensor([0]).to(device))  # Return the latent code from the embedding
+
+

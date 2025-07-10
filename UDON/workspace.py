@@ -5,9 +5,11 @@ latent_vectors_folder = "LatentVectors"
 optimizer_parameters_folder = "OptimizerParameters"
 
 experiment_folder = "experiments"
+log_folder = "Logs"
 
 specs = None
-model_to_use = None
+deeponet_model = None
+deepsdf_model = None
 split = None
 
 #msh_folder = "msh"
