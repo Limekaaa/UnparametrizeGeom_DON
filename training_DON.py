@@ -295,6 +295,8 @@ def main_function(experiment_directory):
     timing_log = []
     normalized_err_log = []
     normalized_test_err_log = []
+    parameter_magnitude_log = None
+    gradient_norm_log = []
 
     def normalized_error(pred, gt):
         return torch.norm(pred - gt) / torch.norm(gt)
@@ -349,6 +351,11 @@ def main_function(experiment_directory):
             normalized_err = normalized_error(deeponet_out, pde_gt.cuda())
             normalized_err_log.append(normalized_err.item())
 
+
+
+            
+
+
             if grad_clip is not None:
                 torch.nn.utils.clip_grad_norm_(deeponet.parameters(), grad_clip)
 
@@ -356,7 +363,24 @@ def main_function(experiment_directory):
 
         end = time.time()
 
+        total_norm = 0
+        for p in deeponet.parameters():
+            if p.grad is not None:
+                param_norm = p.grad.data.norm(2)
+                total_norm += param_norm.item() ** 2
+        total_norm = total_norm ** 0.5
+        gradient_norm_log.append(total_norm)
+
         timing_log.append(end - start)
+
+        if parameter_magnitude_log is None:
+            parameter_magnitude_log = {
+                name: [torch.norm(param).item()]
+                for name, param in deeponet.named_parameters()
+            }
+        else:
+            for name, param in deeponet.named_parameters():
+                parameter_magnitude_log[name].append(torch.norm(param).item())
 
 
         if epoch % log_frequency == 0:
@@ -408,6 +432,8 @@ def main_function(experiment_directory):
             ws.split = "train"
             save_latest(epoch)
 
+            
+
             np.savez(
                 os.path.join(experiment_directory, ws.deep_o_net_folder, "logs.npz"),
                 loss=loss_log,
@@ -416,6 +442,8 @@ def main_function(experiment_directory):
                 test_loss=test_loss_log,
                 normalized_err=normalized_err_log,
                 normalized_test_err=normalized_test_err_log,
+                gradient_norm=gradient_norm_log,
+                **parameter_magnitude_log
             )
         
         if epoch in checkpoints:

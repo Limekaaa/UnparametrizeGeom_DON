@@ -65,8 +65,33 @@ def plot_log(experiment_dir, model, type):
         plt.legend()
         plt.savefig(os.path.join(save_path,"error_plot.png"))
         plt.clf()
+    elif type == "param_mag":
+        param_mags = [key for key in logs if key.startswith("branch") or key.startswith("trunk")]
+        for name in param_mags:
+            plt.plot(logs[name], label=name)
+        plt.xlabel("Epoch")
+        plt.ylabel("Magnitude")
+        plt.title("Parameter Magnitude")
+        plt.legend(
+            bbox_to_anchor=(1.05, 1),  # x=1.05 puts it slightly to the right
+            loc='upper left',          # align the top of the legend to the top left corner of its box
+            borderaxespad=0.           # optional, reduces spacing between plot and legend
+        )
+        plt.savefig(os.path.join(save_path,"param_mag_plot.png"), bbox_inches='tight')
+        plt.clf()
+    elif type == "gradient_norm":
+        if "gradient_norm" in logs.keys():
+            plt.plot(logs["gradient_norm"], label="Gradient Norm")
+            plt.xlabel("Iteration")
+            plt.ylabel("Gradient Norm")
+            plt.title("Gradient Norm per Iteration")
+            plt.legend()
+            plt.savefig(os.path.join(save_path,"gradient_norm_plot.png"))
+            plt.clf()
+        else:
+            raise ValueError("Gradient norm log not found in the logs.")
     elif type == "all":
-        types = ["loss", "learning_rate", "time", "error"]
+        types = ["loss", "learning_rate", "time", "error", "param_mag", "gradient_norm"]
         for t in types:
             plot_log(experiment_dir, model, t)
     else:

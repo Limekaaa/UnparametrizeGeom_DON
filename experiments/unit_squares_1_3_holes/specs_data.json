@@ -18,7 +18,7 @@
         "SamplesPerScene": 10201
     },
     "PDEData":{
-        "n_coeffs":10,
+        "n_coeffs":100,
         "bc_val":0.0,
         "rhs":"lambda x,y: sin(y * x[0]) * sin(y * x[1])"
         
