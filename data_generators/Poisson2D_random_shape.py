@@ -11,9 +11,11 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-import torch
-from torch.utils.data import Dataset, DataLoader
-
+try:
+    import torch
+    from torch.utils.data import Dataset, DataLoader
+except Exception:
+    print("torch not imported")
 
 class Poisson2D_random_shape:
     def __init__(self, mesh , coeffs:list[float]=[1.0], rhs:callable=lambda x,y: sin(y * x[0]) * sin(y * x[1]), bc_val:float=0.0, save_sol = False):
@@ -79,16 +81,17 @@ class Poisson2D_random_shape:
             to_ret.append((coeff, uh_matrix))
         return to_ret
 
+"""
 class DeepONetDataset(Dataset):
-    """
+    '''
     Custom PyTorch Dataset for DeepONet training.
 
     Assumes data is structured as triplets:
     (branch_input, trunk_input, output_value)
     corresponding to (u evaluated at sensors, y location, G(u)(y)).
-    """
+    '''
     def __init__(self, branch_input_data, trunk_input_data, output_data, device='cpu'):
-        """
+        '''
         Args:
             branch_input_data (np.ndarray): Data for the branch net input.
                                             Shape: (N, num_sensors)
@@ -96,7 +99,7 @@ class DeepONetDataset(Dataset):
                                            Shape: (N, y_dim)
             output_data (np.ndarray): Target output data G(u)(y).
                                       Shape: (N, 1) or (N,)
-        """
+        '''
         # Ensure data are numpy arrays
         if not isinstance(branch_input_data, np.ndarray):
             raise TypeError("branch_input_data must be a NumPy array.")
@@ -122,11 +125,11 @@ class DeepONetDataset(Dataset):
         self.num_samples = branch_input_data.shape[0]
 
     def __len__(self):
-        """Returns the total number of samples in the dataset."""
+        '''Returns the total number of samples in the dataset.'''
         return self.num_samples
 
     def __getitem__(self, idx):
-        """
+        '''
         Fetches the sample (triplet) at the given index.
 
         Args:
@@ -135,7 +138,7 @@ class DeepONetDataset(Dataset):
         Returns:
             tuple: A tuple containing (branch_input, trunk_input, output)
                    for the given index.
-        """
+        '''
         if not 0 <= idx < self.num_samples:
             raise IndexError(f"Index {idx} is out of bounds for dataset with size {self.num_samples}")
 
@@ -144,4 +147,5 @@ class DeepONetDataset(Dataset):
         output = self.outputs[idx]
 
         return branch_input, trunk_input, output
+"""
 
