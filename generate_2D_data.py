@@ -63,12 +63,17 @@ if __name__ == "__main__":
             # Save the data to a file
             for i, (coeff, sol) in enumerate(data):
                 path_to_save = os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEData", msh_filename[:-4])
-                c = 0
-                while os.path.exists(path_to_save):
-                    c += 1
-                    path_to_save = os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEData", f"{msh_filename[:-4]}_{c}")
+                #c = 0
+                #while os.path.exists(path_to_save):
+                #    c += 1
+                #    path_to_save = os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEData", f"{msh_filename[:-4]}_{c}")
                 os.makedirs(path_to_save, exist_ok=True)
-                np.savez(os.path.join(path_to_save, f"coeff_{coeff:.4f}.npz"), rhs=np.array(coeff), sol=sol, coords=coords)
+                files_path_to_save = os.listdir(path_to_save)
+                f_name = f"coeff_{coeff:.4f}.npz"
+                count = sum([s.count(f_name) for s in files_path_to_save])
+                if count > 0:
+                    f_name = f"coeff_{coeff:.4f}_{count}.npz"
+                np.savez(os.path.join(path_to_save, f_name), rhs=np.array(coeff), sol=sol, coords=coords)
 
     train_msh_filenames = random.sample(msh_filenames, int(len(msh_filenames) * specs_data["Split"]["train_proportion"]))
     test_msh_filenames = [f for f in msh_filenames if f not in train_msh_filenames]
