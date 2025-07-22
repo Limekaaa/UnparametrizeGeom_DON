@@ -125,33 +125,36 @@ class PDESamples(torch.utils.data.Dataset):
                 data = np.load(os.path.join(data_source, npyfile))
                 rhs = torch.from_numpy(data["rhs"])
                 coords = torch.from_numpy(data["coords"])
-                sol = torch.from_numpy(data["sol"])
-                lat_vectors = torch.load(os.path.join(ws.experiment_folder, ws.deep_sdf_folder, ws.latent_vectors_folder, self.shapes_names[i] + ".pth"))
+                sol = torch.from_numpy(data["sol"]).reshape(-1, 1)
+                lat_vectors = torch.load(os.path.join(os.path.join(ws.experiment_folder, ws.specs["experiment_name"],ws.deep_sdf_folder, ws.latent_vectors_folder, ws.deepsdf_model, ws.split, self.shapes_names[i] + ".pth")))
+                lat_vectors = lat_vectors.repeat(sol.shape[0], 1)
                 rhs = rhs.repeat(sol.shape[0], 1)
-
+                """
                 if self.subsample is not None:
                     rand_idxs = torch.randperm(rhs.shape[0])[:self.subsample]
                     rhs = rhs[rand_idxs]
                     coords = coords[rand_idxs]
-                    sol = sol[rand_idxs]
-
-                self.loaded_data.append((lat_vectors, coords, rhs, sol))
+                    sol = sol[rand_idxs].reshape(-1, 1)
+                    lat_vectors = lat_vectors[rand_idxs]
+                """
+                self.loaded_data.append((lat_vectors.cuda(), coords.cuda(), rhs.cuda(), sol.cuda()))
 
     def __len__(self):
         return len(self.npyfiles)
     
     def __getitem__(self, idx):
         if self.load_ram:
+            
             if self.subsample is not None:
-                rhs, coords, sol = self.loaded_data[idx]
+                lat_vectors, coords, rhs, sol = self.loaded_data[idx]
                 rand_idxs = torch.randperm(rhs.shape[0])[:self.subsample]
                 rhs = rhs[rand_idxs]
                 coords = coords[rand_idxs]
                 sol = sol[rand_idxs]
-                lat_vectors = lat_vectors[rand_idxs]
+                lat_vectors = lat_vectors[rand_idxs].clone().detach()
 
             else:
-                rhs, coords, sol = self.loaded_data[idx]
+                lat_vectors, coords, rhs, sol = self.loaded_data[idx]
             return torch.cat((lat_vectors, coords, rhs, sol), dim=1).float(), idx
         else:
             npyfile = self.npyfiles[idx]
@@ -161,7 +164,7 @@ class PDESamples(torch.utils.data.Dataset):
             sol = torch.from_numpy(data["sol"]).reshape(-1, 1)
             rhs = rhs.repeat(sol.shape[0], 1)
             lat_vectors = torch.load(os.path.join(ws.experiment_folder, ws.specs["experiment_name"],ws.deep_sdf_folder, ws.latent_vectors_folder, ws.deepsdf_model, ws.split, self.shapes_names[idx] + ".pth"), weights_only=False)
-            lat_vectors = lat_vectors.repeat(sol.shape[0], 1).to("cpu")
+            lat_vectors = lat_vectors.repeat(sol.shape[0], 1)#.to("cpu")
 
             if self.subsample is not None:
                 rand_idxs = torch.randperm(rhs.shape[0])[:self.subsample]
@@ -173,5 +176,5 @@ class PDESamples(torch.utils.data.Dataset):
             #print(lat_vectors.get_device(), coords.get_device(), rhs.get_device(), sol.get_device())
 
             #print(torch.cat((lat_vectors, coords, rhs, sol), dim=1).float().shape)
-                
-            return torch.cat((lat_vectors, coords, rhs, sol), dim=1).float(), idx
+
+            return torch.cat((lat_vectors.cuda(), coords.cuda(), rhs.cuda(), sol.cuda()), dim=1).float(), idx

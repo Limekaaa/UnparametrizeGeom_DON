@@ -74,6 +74,8 @@ if __name__ == "__main__":
                 if count > 0:
                     f_name = f"coeff_{coeff:.4f}_{count}.npz"
                 np.savez(os.path.join(path_to_save, f_name), rhs=np.array(coeff), sol=sol, coords=coords)
+            
+                    
 
     train_msh_filenames = random.sample(msh_filenames, int(len(msh_filenames) * specs_data["Split"]["train_proportion"]))
     test_msh_filenames = [f for f in msh_filenames if f not in train_msh_filenames]

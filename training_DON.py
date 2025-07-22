@@ -253,11 +253,18 @@ def main_function(experiment_directory):
     with open(test_split_file, "r") as f:
         test_split = json.load(f)
 
-    train_dataset = UDON.data.PDESamples(data_source, train_split, subsample=num_samp_per_scene, load_ram=False)
+    train_dataset = UDON.data.PDESamples(data_source, train_split, subsample=num_samp_per_scene, load_ram=get_spec_with_default(specs["DeepONet"], "LoadRam", False))
 
-    test_dataset = UDON.data.PDESamples(
-        data_source, test_split, subsample=num_samp_per_scene, load_ram=False
-    )
+    if get_spec_with_default(specs["DeepONet"], "LoadRam", False):
+        ws.split = "test"
+        test_dataset = UDON.data.PDESamples(
+            data_source, test_split, subsample=num_samp_per_scene, load_ram=True
+        )
+        ws.split = "train"
+    else:
+        test_dataset = UDON.data.PDESamples(
+            data_source, test_split, subsample=num_samp_per_scene, load_ram=False
+        )
 
     num_data_loader_threads = get_spec_with_default(specs["DeepONet"], "DataLoaderThreads", 1)
     logging.debug("loading data with {} threads".format(num_data_loader_threads))
@@ -337,6 +344,11 @@ def main_function(experiment_directory):
 
             deeponet_out = deeponet(pde_rhs.cuda(), pde_trunk_inputs.cuda())
 
+            """
+            for pde_d, indice in zip(pde_data, indices):
+                modulation = deeponet.Modulator(
+
+            """
             #print(pde_rhs.shape, pde_trunk_inputs.shape, pde_data.shape, deeponet_out.shape, pde_gt.shape)
 
             #raise Exception("Debugging shapes")
@@ -350,11 +362,6 @@ def main_function(experiment_directory):
             lr_log.append(optimizer_all.param_groups[0]["lr"])
             normalized_err = normalized_error(deeponet_out, pde_gt.cuda())
             normalized_err_log.append(normalized_err.item())
-
-
-
-            
-
 
             if grad_clip is not None:
                 torch.nn.utils.clip_grad_norm_(deeponet.parameters(), grad_clip)

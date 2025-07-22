@@ -122,8 +122,6 @@ class DeepONet(nn.Module):
 
         original_trunk_input = trunk_input.clone()  # Save the original trunk input for later use
 
-        original_trunk_input = trunk_input.clone()
-
         modulation = self.Modulator(latent_vect)  
 
         # Pass through branch network
@@ -148,3 +146,29 @@ class DeepONet(nn.Module):
         out = out.unsqueeze(1)
 
         return out
+
+    def trunk_forward(self, trunk_input, modulation=None):
+        """
+        Forward pass for the trunk network.
+
+        Args:
+            trunk_input (torch.Tensor): Input tensor for the trunk network.
+
+        Returns:
+            torch.Tensor: Output of the trunk network.
+        """
+        original_trunk_input = trunk_input.clone()  # Save the original trunk input for later use
+
+        for layer in range(len(self.trunk_net)):
+            if layer in self.latent_in:
+                #print(trunk_input.shape, original_trunk_input.shape)
+                trunk_input = self.trunk_net[layer](torch.cat((trunk_input, original_trunk_input), dim=-1))
+            else:
+                trunk_input = self.trunk_net[layer](trunk_input)
+            
+            if layer in self.trunk_lin_idx and modulation is not None:
+                trunk_input = trunk_input + modulation[:, :, sum(self.trunk_dims[1:self.trunk_lin_idx.index(layer) + 1]): sum(self.trunk_dims[1:self.trunk_lin_idx.index(layer) + 1]) + trunk_input.shape[-1]]
+        
+        return trunk_input
+            
+
