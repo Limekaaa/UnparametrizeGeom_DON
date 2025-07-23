@@ -45,6 +45,10 @@ if __name__ == "__main__":
     msh_filenames = [f for f in msh_filenames if f.endswith(".msh")]
 
     for msh_filename in msh_filenames:
+        path_to_save = os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "PDEData", msh_filename[:-4])
+        if os.path.exists(path_to_save):
+            logging.warning(f"Folder {msh_filename[:-4]} already exists. Skipping generation for {msh_filename}.")
+            continue
         mesh = Mesh(os.path.join(specs_data["root_dir"], specs_data["dataset_name"], "msh", msh_filename))
 
         coords = mesh.coordinates.dat.data
