@@ -1,4 +1,5 @@
-import json 
+import json
+import logging 
 import numpy as np
 import random
 import argparse
@@ -23,7 +24,7 @@ if __name__ == "__main__":
         "-b",
         dest="batch_size",
         type=int,
-        default=10,
+        default=-1,
         help="The batch size for data generation."
     )
 
@@ -50,7 +51,13 @@ if __name__ == "__main__":
         rhs = eval(specs_data["PDEData"]["rhs"])
 
         coeffs = [1.0] if specs_data["PDEData"]["n_coeffs"] == 1 else [random.uniform(0.0, 2.0) for _ in range(specs_data["PDEData"]["n_coeffs"])]
-        batch_coeffs = [coeffs[i : i + args.batch_size] for i in range(0, len(coeffs), args.batch_size)]
+        if args.batch_size == -1:
+            batch_coeffs = [coeffs]
+        else:
+            if len(coeffs) < args.batch_size:
+                raise ValueError("Batch size is larger than the number of coefficients.")
+            batch_coeffs = [coeffs[i : i + args.batch_size] for i in range(0, len(coeffs), args.batch_size)]
+
         for coeff in batch_coeffs:
             data_gen = Poisson2D_random_shape(
                 mesh,
@@ -74,7 +81,8 @@ if __name__ == "__main__":
                 if count > 0:
                     f_name = f"coeff_{coeff:.4f}_{count}.npz"
                 np.savez(os.path.join(path_to_save, f_name), rhs=np.array(coeff), sol=sol, coords=coords)
-            
+        
+        logging.info(f"Data for mesh {msh_filename} generated and saved.")
                     
 
     train_msh_filenames = random.sample(msh_filenames, int(len(msh_filenames) * specs_data["Split"]["train_proportion"]))
