@@ -320,11 +320,10 @@ def main_function(experiment_directory):
             sum(p.data.nelement() for p in deeponet.parameters())
         )
     )
-
+    logging.info("Start training from epoch {}".format(start_epoch))
     for epoch in range(start_epoch, num_epochs + 1):
 
         start = time.time()
-        logging.info("epoch {}...".format(epoch))
         deeponet.train()
 
         adjust_learning_rate(lr_schedules, optimizer_all, epoch)
@@ -391,17 +390,17 @@ def main_function(experiment_directory):
             for name, param in deeponet.named_parameters():
                 parameter_magnitude_log[name].append(torch.norm(param).item())
 
-
-        if epoch % log_frequency == 0:
-            logging.info(
-                "epoch {}: loss {:.6f}, time {:.2f} sec, lr {:.6f}".format(
-                    epoch,
-                    np.mean(loss_log[-len(pde_loader) :]),
-                    np.mean(timing_log[-len(pde_loader) :]),
-                    optimizer_all.param_groups[0]["lr"],
-                )
+        #logging.info("epoch {}: los...".format(epoch))
+        
+        logging.info(
+            "epoch {}: loss {:.6f}, time {:.2f} sec, lr {:.6f}".format(
+                epoch,
+                np.mean(loss_log[-len(pde_loader) :]),
+                np.mean(timing_log[-len(pde_loader) :]),
+                optimizer_all.param_groups[0]["lr"],
             )
-
+        )
+        if epoch % log_frequency == 0:
             test_loss = []
             deeponet.eval()
             ws.split = "test"
