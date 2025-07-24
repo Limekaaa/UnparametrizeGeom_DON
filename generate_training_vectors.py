@@ -94,7 +94,7 @@ if __name__ == "__main__":
             args.experiment_directory,
             ws.deep_sdf_folder,
             ws.parameters_folder,
-            f"{specs["DeepSDFDecoder"]["LatentVectors"]["checkpoint"]}.pth",
+            f"{specs['DeepSDFDecoder']['LatentVectors']['checkpoint']}.pth",
         ),
         map_location=device
     )
