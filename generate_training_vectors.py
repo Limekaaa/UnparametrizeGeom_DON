@@ -52,7 +52,6 @@ if __name__ == "__main__":
         help="Set the logging level (default: INFO)",
     )
 
-
     args = arg_parser.parse_args()
 
     if args.log_level == "DEBUG":
@@ -69,6 +68,16 @@ if __name__ == "__main__":
         raise ValueError("Unknown log level: {}".format(args.log_level))
 
     specs = json.load(open(os.path.join(args.experiment_directory, "specs.json"), "r"))
+    specs_data = json.load(open(os.path.join(args.experiment_directory, "specs_data.json"), "r"))
+
+    try:
+        latent_vectors_subfolder = specs_data["LatentVectors"]["folder_name"]
+        if latent_vectors_subfolder is None or latent_vectors_subfolder == "":
+            latent_vectors_subfolder = specs["experiment_name"]
+    except:
+        latent_vectors_subfolder = specs["experiment_name"]
+
+    
 
     arch = __import__("networks." + specs["DeepSDFDecoder"]["NetworkArch"], fromlist=["Decoder"])
 
@@ -109,13 +118,21 @@ if __name__ == "__main__":
     random.shuffle(npz_filenames)
 
     logging.debug(decoder)
-
+    """
     save_vec_dir = os.path.join(
         args.experiment_directory,
         ws.deep_sdf_folder,
         ws.latent_vectors_folder,
         specs["DeepSDFDecoder"]["LatentVectors"]["checkpoint"],
         args.split,
+    )
+    """
+    save_vec_dir = os.path.join(
+        specs["DataSource"],
+        specs_data["dataset_name"],
+        ws.latent_vectors_folder,
+        latent_vectors_subfolder,
+        specs["DeepSDFDecoder"]["LatentVectors"]["checkpoint"],
     )
 
     os.makedirs(save_vec_dir, exist_ok=True)

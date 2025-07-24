@@ -8,6 +8,7 @@ experiment_folder = "experiments"
 log_folder = "Logs"
 
 specs = None
+specs_data = None
 deeponet_model = None
 deepsdf_model = None
 split = None

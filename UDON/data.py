@@ -109,7 +109,72 @@ class PDESamples(torch.utils.data.Dataset):
         self.data_source = data_source
         self.npyfiles = get_PDE_instance_filenames(data_source, split)
         self.shapes_names = [os.path.split(os.path.split(path)[0])[1] for path in self.npyfiles]
+        
+        try:
+            n_shapes = ws.specs["DeepONet"]["ShapesToLoad"]
+        except:
+            n_shapes = -1
+        
+        try:
+            n_eq_per_shape = ws.specs["DeepONet"]["EqPerShape"]
+        except:
+            n_eq_per_shape = -1
+        
+        n_shapes = 5
+        n_eq_per_shape = 2
 
+        if n_shapes == 0 or n_eq_per_shape == 0:
+            raise ValueError("Number of shapes or equations per shape cannot be zero. At least one shape and one equation per shape is required.")
+        
+        if n_shapes != -1:
+            unique_shapes = list(set(self.shapes_names))
+            if n_shapes > len(unique_shapes):
+                logging.warning(
+                    "Requested number of shapes ({}) is greater than available shapes ({})".format(
+                        n_shapes, len(unique_shapes)
+                    )
+                )
+                n_shapes = len(unique_shapes)
+            
+            selected_shapes = random.sample(unique_shapes, n_shapes)
+            self.npyfiles = [self.npyfiles[i] for i in range(len(self.npyfiles)) if self.shapes_names[i] in selected_shapes]
+            self.shapes_names = [os.path.split(os.path.split(path)[0])[1] for path in self.npyfiles]
+
+        if n_eq_per_shape != -1:
+            new_npyfiles = []
+            new_shapes_names = []
+            unique_shapes = list(set(self.shapes_names))
+            for shape_name in unique_shapes:
+                shape_files = [self.npyfiles[i] for i in range(len(self.npyfiles)) if self.shapes_names[i] == shape_name]
+                if len(shape_files) < n_eq_per_shape:
+                    logging.warning(
+                        "Requested number of equations per shape ({}) is greater than available equations ({}) for shape {}".format(
+                            n_eq_per_shape, len(shape_files), shape_name
+                        )
+                    )
+                    n_eq_per_shape = len(shape_files)
+                
+                selected_files = random.sample(shape_files, n_eq_per_shape)
+                new_npyfiles.extend(selected_files)
+                new_shapes_names.extend([shape_name] * n_eq_per_shape)
+
+            self.npyfiles = new_npyfiles
+            self.shapes_names = new_shapes_names
+
+        try:
+            latent_vectors_subfolder = ws.specs_data["LatentVectors"]["folder_name"]
+            if latent_vectors_subfolder is None or latent_vectors_subfolder == "":
+                latent_vectors_subfolder = ws.specs["experiment_name"]
+        except:
+            latent_vectors_subfolder = ws.specs["experiment_name"]
+        
+        self.lat_vec_dir = os.path.join(
+            ws.specs["DataSource"],
+            ws.specs_data["dataset_name"],
+            ws.latent_vectors_folder,
+            latent_vectors_subfolder,
+            ws.specs["DeepSDFDecoder"]["LatentVectors"]["checkpoint"],
+        )
 
         logging.debug(
             "using "
@@ -126,7 +191,9 @@ class PDESamples(torch.utils.data.Dataset):
                 rhs = torch.from_numpy(data["rhs"])
                 coords = torch.from_numpy(data["coords"])
                 sol = torch.from_numpy(data["sol"]).reshape(-1, 1)
-                lat_vectors = torch.load(os.path.join(os.path.join(ws.experiment_folder, ws.specs["experiment_name"],ws.deep_sdf_folder, ws.latent_vectors_folder, ws.deepsdf_model, ws.split, self.shapes_names[i] + ".pth")))
+
+                lat_vectors = torch.load(os.path.join(self.lat_vec_dir, self.shapes_names[i] + ".pth") , weights_only=False)
+                #lat_vectors = torch.load(os.path.join(os.path.join(ws.experiment_folder, ws.specs["experiment_name"],ws.deep_sdf_folder, ws.latent_vectors_folder, ws.deepsdf_model, ws.split, self.shapes_names[i] + ".pth")))
                 lat_vectors = lat_vectors.repeat(sol.shape[0], 1)
                 rhs = rhs.repeat(sol.shape[0], 1)
                 """
@@ -163,7 +230,10 @@ class PDESamples(torch.utils.data.Dataset):
             coords = torch.from_numpy(data["coords"])
             sol = torch.from_numpy(data["sol"]).reshape(-1, 1)
             rhs = rhs.repeat(sol.shape[0], 1)
-            lat_vectors = torch.load(os.path.join(ws.experiment_folder, ws.specs["experiment_name"],ws.deep_sdf_folder, ws.latent_vectors_folder, ws.deepsdf_model, ws.split, self.shapes_names[idx] + ".pth"), weights_only=False)
+
+            lat_vectors = torch.load(os.path.join(self.lat_vec_dir, self.shapes_names[idx] + ".pth") , weights_only=False)
+            #lat_vectors = torch.load(os.path.join(ws.experiment_folder, ws.specs["experiment_name"],ws.deep_sdf_folder, ws.latent_vectors_folder, ws.deepsdf_model, ws.split, self.shapes_names[idx] + ".pth"), weights_only=False)
+            
             lat_vectors = lat_vectors.repeat(sol.shape[0], 1)#.to("cpu")
 
             if self.subsample is not None:

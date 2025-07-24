@@ -19,7 +19,7 @@ logging.basicConfig(level=logging.DEBUG)
 def get_spec_with_default(specs, key, default):
     try:
         return specs[key]
-    except KeyError:
+    except:
         return default
 
 class LearningRateSchedule:
@@ -183,8 +183,10 @@ def load_optimizer(experiment_directory, filename, optimizer):
 def main_function(experiment_directory):
     logging.debug("running " + experiment_directory)
     specs = json.load(open(experiment_directory + "/specs.json"))
+    specs_data = json.load(open(experiment_directory + "/specs_data.json"))
 
     ws.specs = specs
+    ws.specs_data = specs_data
     ws.split = "train"
     ws.deeponet_model = "latest"
     ws.deepsdf_model = "latest"
