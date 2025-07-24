@@ -119,9 +119,6 @@ class PDESamples(torch.utils.data.Dataset):
             n_eq_per_shape = ws.specs["DeepONet"]["EqPerShape"]
         except:
             n_eq_per_shape = -1
-        
-        n_shapes = 5
-        n_eq_per_shape = 2
 
         if n_shapes == 0 or n_eq_per_shape == 0:
             raise ValueError("Number of shapes or equations per shape cannot be zero. At least one shape and one equation per shape is required.")
