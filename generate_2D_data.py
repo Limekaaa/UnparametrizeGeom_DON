@@ -99,3 +99,9 @@ if __name__ == "__main__":
 
     json.dump(train_dict, open(os.path.join(specs_data["Split"]["split_path"], f"{specs_data['dataset_name']}_train.json"), "w"), indent=4)
     json.dump(test_dict, open(os.path.join(specs_data["Split"]["split_path"], f"{specs_data['dataset_name']}_test.json"), "w"), indent=4)
+
+    train_dict = {specs_data["dataset_name"]: {"npz": [train_msh_filenames[i][:-4] for i in range(len(train_msh_filenames))]}}
+    test_dict = {specs_data["dataset_name"]: {"npz": [test_msh_filenames[i][:-4] for i in range(len(test_msh_filenames))]}}
+
+    json.dump(train_dict, open(os.path.join(specs_data["Split"]["split_path"], f"{specs_data['dataset_name']}_train_npz.json"), "w"), indent=4)
+    json.dump(test_dict, open(os.path.join(specs_data["Split"]["split_path"], f"{specs_data['dataset_name']}_test_npz.json"), "w"), indent=4)

@@ -144,6 +144,16 @@ if __name__ == "__main__":
 
         npz_path = os.path.join(specs["DataSource"], npz_filename)
 
+        npz_name = os.path.basename(npz_filename)
+        # save latent vector as pth file
+        latent_vector_filename = os.path.join(
+            save_vec_dir, npz_name.replace(".npz", ".pth")
+        )
+
+        if os.path.exists(latent_vector_filename):
+            logging.warning("Latent vector file {} already exists. Skipping.".format(latent_vector_filename))
+            continue
+
         data_sdf = UDON.data.read_sdf_samples_into_ram(npz_path)
 
         data_sdf[0] = data_sdf[0][torch.randperm(data_sdf[0].shape[0])]
@@ -167,11 +177,5 @@ if __name__ == "__main__":
         logging.debug(ii)
 
         logging.debug("latent: {}".format(latent.detach().cpu().numpy()))
-
-        npz_name = os.path.basename(npz_filename)
-        # save latent vector as pth file
-        latent_vector_filename = os.path.join(
-            save_vec_dir, npz_name.replace(".npz", ".pth")
-        )
 
         torch.save(latent, latent_vector_filename)
