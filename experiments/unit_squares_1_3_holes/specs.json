@@ -1,6 +1,6 @@
 {
     "Description": "Solve Poisson equation on 2D meshes",
-    "experiment_name": "unit_squares_1_3_holes",
+    "experiment_name": "modulation4",
     "DataSource" : "data",
     "DeepSDFTrainSplit":"experiments/splits/unit_square_with_holes_train_npz.json",
     "DeepSDFTestSplit":"experiments/splits/unit_square_with_holes_test_npz.json",
@@ -33,13 +33,14 @@
         "SamplesPerScene" : 10201
     },
     "DeepONet":{
-        "NetworkArch": "DeepONet2DGeometry_upgraded",
+        "NetworkArch": "MetaLearningDON",
         "NetworkSpecs" : {
             "num_branch_inputs": 1,
             "num_basis_functions": 128,
-            "num_trunk_inputs": 34,
+            "num_trunk_inputs": 2,
             "branch_dims": [128, 128, 128, 128],
             "trunk_dims": [128, 128, 128, 128],
+            "latent_dim": 32,
             "dropout":[[], []],
             "dropout_prob": 0.2,
             "norm_layers": [[0, 1, 2, 3], [0, 1, 2, 3]],
@@ -47,6 +48,8 @@
             "weight_norm": true
         },
         "ToTrain": true,
+        "ShapesToLoad":1000,
+        "EqPerShape":5,
         "ScenesPerBatch" : 64,
         "DataLoaderThreads" : 0,
         "NumEpochs" : 2000,
@@ -54,6 +57,7 @@
         "AdditionalSnapshots" : [ 50 ],
         "SamplesPerScene": 200,
         "L2_regularization": 0.0001,
+        "LoadRam":true,
         "LearningRateSchedule" : [
             {
             "Type" : "Step",

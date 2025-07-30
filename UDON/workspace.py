@@ -6,6 +6,7 @@ optimizer_parameters_folder = "OptimizerParameters"
 
 experiment_folder = "experiments"
 log_folder = "Logs"
+reconstruction_folder = "Reconstructions"
 
 specs = None
 specs_data = None

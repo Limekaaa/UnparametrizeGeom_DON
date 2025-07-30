@@ -103,7 +103,7 @@ def get_PDE_instance_filenames(data_source, split):
 
 
 class PDESamples(torch.utils.data.Dataset):
-    def __init__(self, data_source, split, subsample, load_ram=False):
+    def __init__(self, data_source, split, subsample=None, load_ram=False):
         self.subsample = subsample
 
         self.data_source = data_source

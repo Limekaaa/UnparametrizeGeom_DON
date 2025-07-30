@@ -321,8 +321,18 @@ def main_function(experiment_directory):
         )
     )
     logging.info("Start training from epoch {}".format(start_epoch))
+
+    loss_log_epoch = []
+    lr_log_epoch = []
+    normalized_err_log_epoch = []
+
     for epoch in range(start_epoch, num_epochs + 1):
 
+        loss_log = []
+        lr_log = []
+        normalized_err = []
+        normalized_err_log = []
+        
         start = time.time()
         deeponet.train()
 
@@ -371,6 +381,10 @@ def main_function(experiment_directory):
 
         end = time.time()
 
+        loss_log_epoch.append(np.mean(batch_loss))
+        lr_log_epoch.append(optimizer_all.param_groups[0]["lr"])
+        normalized_err_log_epoch.append(np.mean(normalized_err_log))
+        
         total_norm = 0
         for p in deeponet.parameters():
             if p.grad is not None:
@@ -444,11 +458,11 @@ def main_function(experiment_directory):
 
             np.savez(
                 os.path.join(experiment_directory, ws.deep_o_net_folder, "logs.npz"),
-                loss=loss_log,
-                lr=lr_log,
+                loss=loss_log_epoch,
+                lr=lr_log_epoch,
                 timing=timing_log,
                 test_loss=test_loss_log,
-                normalized_err=normalized_err_log,
+                normalized_err=normalized_err_log_epoch,
                 normalized_test_err=normalized_test_err_log,
                 gradient_norm=gradient_norm_log,
                 **parameter_magnitude_log
