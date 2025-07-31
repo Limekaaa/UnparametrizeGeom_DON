@@ -124,7 +124,7 @@ def create_polygons_dataset(num_samples = 100, min_sides=3, max_sides=8, irregul
                 while os.path.exists(os.path.join(path, "stl", f"{new_filename}.stl")):
                     c += 1
                     new_filename = f"{filename}_{c}"
-                gmsh.write(os.path.join(path, "stl", f"{new_filename}.stl")))
+                gmsh.write(os.path.join(path, "stl", f"{new_filename}.stl"))
 
             if not os.path.exists(os.path.join(path, "obj")):
                 os.makedirs(os.path.join(path, "obj"))
