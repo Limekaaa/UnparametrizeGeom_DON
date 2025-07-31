@@ -36,7 +36,7 @@ def create_polygons_dataset(num_samples = 100, min_sides=3, max_sides=8, irregul
 
     for i in range(num_samples):#, desc="Generating polygon characteristics", unit="sample"):
         n_sides = min_sides + i//(num_samples // (max_sides - min_sides - 1))
-        print(n_sides)
+        #print(n_sides)
         angles = np.array([np.random.normal(2*np.pi*j / n_sides, irregularity/n_sides) for j in range(n_sides)])
         
         for j in range(len(angles)):
