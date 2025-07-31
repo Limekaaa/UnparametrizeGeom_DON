@@ -95,43 +95,43 @@ def create_polygons_dataset(num_samples = 100, min_sides=3, max_sides=8, irregul
         filename = f"{n_sides}_sides_polygon_{idx%(num_samples//(max_sides-min_sides))}"
 
         if "stl" in save_format:
-            if not os.path.exists(f"{path}stl/"):
-                os.makedirs(f"{path}stl/")
+            if not os.path.exists(os.path.join(path, "stl")):
+                os.makedirs(os.path.join(path, "stl"))
             c = 0
             new_filename = filename
-            while os.path.exists(f"{path}stl/{new_filename}.stl"):
+            while os.path.exists(os.path.join(path, "stl", f"{new_filename}.stl")):
                 c += 1
                 new_filename = f"{filename}_{c}"
-            gmsh.write(f"{path}stl/{new_filename}.stl")
-            
+            gmsh.write(os.path.join(path, "stl", f"{new_filename}.stl"))
+
         if "msh" in save_format:
-            if not os.path.exists(f"{path}msh/"):
-                os.makedirs(f"{path}msh/")
+            if not os.path.exists(os.path.join(path, "msh")):
+                os.makedirs(os.path.join(path, "msh"))
             c = 0
             new_filename = filename
-            while os.path.exists(f"{path}msh/{new_filename}.msh"):
+            while os.path.exists(os.path.join(path, "msh", f"{new_filename}.msh")):
                 c += 1
                 new_filename = f"{filename}_{c}"
-            gmsh.write(f"{path}msh/{new_filename}.msh")
+            gmsh.write(os.path.join(path, "msh", f"{new_filename}.msh"))
 
         if "obj" in save_format:
             if "stl" not in save_format:
                 print("Warning: 'obj' format requires 'stl' format to be saved as well. Saving as 'stl'.")
-                if not os.path.exists(f"{path}stl/"):
-                    os.makedirs(f"{path}stl/")
+                if not os.path.exists(os.path.join(path, "stl")):
+                    os.makedirs(os.path.join(path, "stl"))
                 c = 0
                 new_filename = filename
-                while os.path.exists(f"{path}stl/{new_filename}.stl"):
+                while os.path.exists(os.path.join(path, "stl", f"{new_filename}.stl")):
                     c += 1
                     new_filename = f"{filename}_{c}"
-                gmsh.write(f"{path}stl/{new_filename}.stl")
+                gmsh.write(os.path.join(path, "stl", f"{new_filename}.stl")))
 
-            if not os.path.exists(f"{path}obj/"):
-                os.makedirs(f"{path}obj/")
-            
-            tri_mesh = trimesh.load(f"{path}stl/{new_filename}.stl")
+            if not os.path.exists(os.path.join(path, "obj")):
+                os.makedirs(os.path.join(path, "obj"))
 
-            trimesh.exchange.export.export_mesh(tri_mesh, f"{path}obj/{new_filename}.obj", file_type='obj')
+            tri_mesh = trimesh.load(os.path.join(path, "stl", f"{new_filename}.stl"))
+
+            trimesh.exchange.export.export_mesh(tri_mesh, os.path.join(path, "obj", f"{new_filename}.obj"), file_type='obj')
 
         #gmsh.fltk.run()
         gmsh.finalize()
