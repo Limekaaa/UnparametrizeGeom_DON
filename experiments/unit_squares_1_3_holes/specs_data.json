@@ -2,7 +2,7 @@
     "Description":"Solve Poisson equation on 2D meshes",
     "dataset_name": "unit_squares_with_holes_test",
     "SDFDataGenerator":"msh_unit_square_with_holes",
-    "PDEDataGenerator":"path/to/pde_data_generator",
+    "PDEDataGenerator":"Poisson2D_random_shape",
     "root_dir": "data",
     "SDFData":{
         "num_samples": 5,

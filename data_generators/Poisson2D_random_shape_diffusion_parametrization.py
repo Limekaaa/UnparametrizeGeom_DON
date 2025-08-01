@@ -53,12 +53,12 @@ class Poisson2D_random_shape:
             #    Note: mesh is 2D embedded in R^3, so we ignore z (x[2])
 
             x = SpatialCoordinate(self.mesh)
-            f = self.rhs(x, coeff)
+            f = self.rhs(x, 1.0)
             fh = Function(V, name="RHS")
             fh.interpolate(f)
             # 5) Variational forms for the Poisson problem
-            #a = dot(grad(u), un_coeff * grad(v)) * dx # ajouter coeff ici 
-            a = dot(grad(u), grad(v)) * dx
+            
+            a = dot(grad(u), coeff * grad(v)) * dx
             L = f * v * dx
 
             # 6) Homogeneous Dirichlet BC on the entire outer boundary
