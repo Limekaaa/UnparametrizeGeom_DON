@@ -90,13 +90,16 @@ def PDEDataGenerator(specs_data, args):
         specs_data_filename (str): Path to the JSON file containing specifications.
         args (argparse.Namespace): Command line arguments including batch size.
     """
+
+    
+    """ 
     import os
     import json
     import logging 
     import numpy as np
     import random
     from firedrake import *
-
+    """
 
     msh_filenames = os.listdir(os.path.join(specs_data["root_dir"], specs_data["dataset_name"],"msh"))
     msh_filenames = [f for f in msh_filenames if f.endswith(".msh")]

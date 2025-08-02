@@ -11,11 +11,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from tqdm import tqdm
 
-try:
-    import torch
-    from torch.utils.data import Dataset, DataLoader
-except Exception:
-    print("torch not imported")
+import os
+import logging 
+import random
 
 class Poisson2D_random_shape:
     def __init__(self, mesh , coeffs:list[float]=[1.0], rhs:callable=lambda x,y: sin(y * x[0]) * sin(y * x[1]), bc_val:float=0.0, save_sol = False):
@@ -90,13 +88,6 @@ def PDEDataGenerator(specs_data, args):
         specs_data_filename (str): Path to the JSON file containing specifications.
         args (argparse.Namespace): Command line arguments including batch size.
     """
-    import os
-    import json
-    import logging 
-    import numpy as np
-    import random
-    from firedrake import *
-
 
     msh_filenames = os.listdir(os.path.join(specs_data["root_dir"], specs_data["dataset_name"],"msh"))
     msh_filenames = [f for f in msh_filenames if f.endswith(".msh")]
@@ -151,71 +142,4 @@ def PDEDataGenerator(specs_data, args):
 
     return train_msh_filenames, test_msh_filenames
 
-"""
-class DeepONetDataset(Dataset):
-    '''
-    Custom PyTorch Dataset for DeepONet training.
-
-    Assumes data is structured as triplets:
-    (branch_input, trunk_input, output_value)
-    corresponding to (u evaluated at sensors, y location, G(u)(y)).
-    '''
-    def __init__(self, branch_input_data, trunk_input_data, output_data, device='cpu'):
-        '''
-        Args:
-            branch_input_data (np.ndarray): Data for the branch net input.
-                                            Shape: (N, num_sensors)
-            trunk_input_data (np.ndarray): Data for the trunk net input (y locations).
-                                           Shape: (N, y_dim)
-            output_data (np.ndarray): Target output data G(u)(y).
-                                      Shape: (N, 1) or (N,)
-        '''
-        # Ensure data are numpy arrays
-        if not isinstance(branch_input_data, np.ndarray):
-            raise TypeError("branch_input_data must be a NumPy array.")
-        if not isinstance(trunk_input_data, np.ndarray):
-            raise TypeError("trunk_input_data must be a NumPy array.")
-        if not isinstance(output_data, np.ndarray):
-            raise TypeError("output_data must be a NumPy array.")
-
-        # Basic dimension check
-        if not (branch_input_data.shape[0] == trunk_input_data.shape[0] == output_data.shape[0]):
-             raise ValueError("All input arrays must have the same number of samples (first dimension).")
-
-        # Convert data to PyTorch tensors
-        # It's often recommended to use float32 for neural network training
-        self.branch_inputs = torch.tensor(branch_input_data, dtype=torch.float32, device=device)
-        self.trunk_inputs = torch.tensor(trunk_input_data, dtype=torch.float32, device=device)
-        self.outputs = torch.tensor(output_data, dtype=torch.float32, device=device)
-
-        # Reshape output to be (N, 1) if it's (N,)
-        if self.outputs.ndim == 1:
-            self.outputs = self.outputs.unsqueeze(1)
-
-        self.num_samples = branch_input_data.shape[0]
-
-    def __len__(self):
-        '''Returns the total number of samples in the dataset.'''
-        return self.num_samples
-
-    def __getitem__(self, idx):
-        '''
-        Fetches the sample (triplet) at the given index.
-
-        Args:
-            idx (int): The index of the sample to retrieve.
-
-        Returns:
-            tuple: A tuple containing (branch_input, trunk_input, output)
-                   for the given index.
-        '''
-        if not 0 <= idx < self.num_samples:
-            raise IndexError(f"Index {idx} is out of bounds for dataset with size {self.num_samples}")
-
-        branch_input = self.branch_inputs[idx]
-        trunk_input = self.trunk_inputs[idx]
-        output = self.outputs[idx]
-
-        return branch_input, trunk_input, output
-"""
 
