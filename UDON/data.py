@@ -101,6 +101,18 @@ def get_PDE_instance_filenames(data_source, split):
                     npzfiles += [instance_filename]
     return npzfiles
 
+def oversampling(idxs, n_samples):
+    """
+    Oversample the indices to ensure that we have n_samples.
+    If n_samples is less than the length of idxs, it will randomly sample from idxs.
+    """
+
+    to_add = n_samples - len(idxs)
+    added_idxs = np.random.choice(idxs, size=to_add, replace=True)
+    idxs = np.concatenate((idxs, added_idxs))
+    return idxs
+    
+
 
 class PDESamples(torch.utils.data.Dataset):
     def __init__(self, data_source, split, subsample=None, load_ram=False):
@@ -212,6 +224,9 @@ class PDESamples(torch.utils.data.Dataset):
             if self.subsample is not None:
                 lat_vectors, coords, rhs, sol = self.loaded_data[idx]
                 rand_idxs = torch.randperm(rhs.shape[0])[:self.subsample]
+                if len(rand_idxs) < self.subsample:
+                    rand_idxs = oversampling(rand_idxs, self.subsample)
+
                 rhs = rhs[rand_idxs]
                 coords = coords[rand_idxs]
                 sol = sol[rand_idxs]
@@ -235,6 +250,8 @@ class PDESamples(torch.utils.data.Dataset):
 
             if self.subsample is not None:
                 rand_idxs = torch.randperm(rhs.shape[0])[:self.subsample]
+                if len(rand_idxs) < self.subsample:
+                    rand_idxs = oversampling(rand_idxs, self.subsample)
                 rhs = rhs[rand_idxs]
                 coords = coords[rand_idxs]
                 sol = sol[rand_idxs]
