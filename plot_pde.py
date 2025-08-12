@@ -81,7 +81,8 @@ if __name__ == "__main__":
         "--n_reconstructions",
         type=int,
         default=1,
-        help="The number of reconstructions to perform."
+        help="The number of reconstructions to perform.",
+        dest="n_reconstructions"
     )
 
     parser.add_argument(
@@ -134,6 +135,7 @@ if __name__ == "__main__":
         split,
     )
 
+    print(f"Number of reconstructions: {args.n_reconstructions}")
     idxs = np.random.choice(len(pde_samples), args.n_reconstructions, replace=False)
 
     for idx in idxs:
