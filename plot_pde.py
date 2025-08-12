@@ -177,9 +177,9 @@ if __name__ == "__main__":
         plt.savefig(os.path.join(experiment_directory, ws.deep_o_net_folder, ws.reconstruction_folder, args.split, f"reconstruction_{pde_samples.shapes_names[idx]}.png"))
         plt.close()
 
-        contour1 = plt.tricontourf(triang, abs(preds_np - gt_np), levels=100, cmap='viridis')#, vmin=vmin, vmax=vmax)
-        plt.colorbar(contour1, label='absolute error')
-        plt.title("Absolute error")
+        contour1 = plt.tricontourf(triang, abs((preds_np - gt_np)/gt_np), levels=100, cmap='viridis')#, vmin=vmin, vmax=vmax)
+        plt.colorbar(contour1, label='Scaled absolute error')
+        plt.title("Scaled absolute error")
         plt.xlabel("x")
         plt.ylabel("y")
         plt.savefig(os.path.join(experiment_directory, ws.deep_o_net_folder, ws.reconstruction_folder, args.split, f"reconstruction_error_{pde_samples.shapes_names[idx]}.png"))
