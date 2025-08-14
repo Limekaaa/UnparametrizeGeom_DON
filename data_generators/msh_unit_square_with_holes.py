@@ -14,7 +14,7 @@ import meshio
 #import deep_sdf
 from typing import List, Literal
 
-def create_square_with_hole_dataset(num_samples = 100, min_hole=1, max_hole=5, min_radius=0.05, path:str="", save_format: List[Literal["msh", "stl", "obj"]] = ["msh"]):
+def create_square_with_hole_dataset(num_samples = 100, min_hole=1, max_hole=5, min_radius=0.05, max_radius = 1,path:str="", save_format: List[Literal["msh", "stl", "obj"]] = ["msh"]):
     """
     Create a dataset of square meshes with circular holes.
     
@@ -36,6 +36,8 @@ def create_square_with_hole_dataset(num_samples = 100, min_hole=1, max_hole=5, m
         n_holes = np.random.randint(min_hole, max_hole + 1)
         bounds = np.linspace(0, 1, n_holes + 1)
         max_R = 0.5 * (1 / n_holes)
+        if max_radius < max_R:
+            max_R = max_radius
         hole_radii = np.random.uniform(min_radius, max_R, n_holes)
 
         hole_centers_bound_x = [(bounds[k] + hole_radii[k], bounds[k + 1] - hole_radii[k]) for k in range(0, n_holes, 1)]
@@ -197,12 +199,18 @@ def sdf_data_generator(specs, specs_data):
     if "npz" in specs_data["SDFData"]["save_format"] and "msh" not in specs_data["SDFData"]["save_format"]:
         print("Warning: 'npz' format requires 'msh' format to be saved as well. Saving as 'msh'.")
         specs_data["SDFData"]["save_format"].append("msh")
-        
+
+    if "max_radius" in specs_data["SDFData"]:
+        max_radius = specs_data["SDFData"]["max_radius"]
+    else:
+        max_radius = 1.0
+
     create_square_with_hole_dataset(
         num_samples=specs_data["SDFData"]["num_samples"],
         min_hole=specs_data["SDFData"]["min_hole"],
         max_hole=specs_data["SDFData"]["max_hole"],
         min_radius=specs_data["SDFData"]["min_radius"],
+        max_radius=max_radius,
         path=full_path,
     )
     print(f"Generated {specs_data['SDFData']['num_samples']} samples of square meshes with circular holes in '{full_path}' directory.")
