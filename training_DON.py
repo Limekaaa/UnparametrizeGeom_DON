@@ -180,7 +180,7 @@ def load_optimizer(experiment_directory, filename, optimizer):
 
 
 
-def main_function(experiment_directory):
+def main_function(experiment_directory, continue_from=None):
     logging.debug("running " + experiment_directory)
     specs = json.load(open(experiment_directory + "/specs.json"))
     specs_data = json.load(open(experiment_directory + "/specs_data.json"))
@@ -307,10 +307,6 @@ def main_function(experiment_directory):
     parameter_magnitude_log = None
     gradient_norm_log = []
 
-    def normalized_error(pred, gt):
-        return torch.norm(pred - gt) / torch.norm(gt)
-
-
     test_loss_log = []
 
     start_epoch = 1
@@ -320,11 +316,51 @@ def main_function(experiment_directory):
             sum(p.data.nelement() for p in deeponet.parameters())
         )
     )
-    logging.info("Start training from epoch {}".format(start_epoch))
-
+    
     loss_log_epoch = []
     lr_log_epoch = []
     normalized_err_log_epoch = []
+
+    if continue_from is not None:
+        logging.info('continuing from "{}"'.format(continue_from))
+
+        model_epoch = torch.load(
+            os.path.join(
+                experiment_directory, ws.deep_o_net_folder, ws.parameters_folder, continue_from + ".pth"
+            ), weights_only=True
+        )["epoch"]
+
+        optimizer_epoch = torch.load(
+            os.path.join(
+                experiment_directory, ws.deep_o_net_folder, ws.optimizer_parameters_folder, continue_from + ".pth"
+            ), weights_only=True
+        )["epoch"]
+
+        past_logs = np.load(os.path.join(experiment_directory, ws.deep_o_net_folder, "logs.npz"))
+
+        loss_log_epoch= past_logs["loss"].tolist()[:model_epoch]
+        lr_log_epoch= past_logs["lr"].tolist()[:model_epoch]
+        timing_log= past_logs["timing"].tolist()[:model_epoch]
+        test_loss_log= past_logs["test_loss"].tolist()[:model_epoch//log_frequency]
+        normalized_err_log_epoch= past_logs["normalized_err"].tolist()[:model_epoch]
+        normalized_test_err_log= past_logs["normalized_test_err"].tolist()[:model_epoch//log_frequency]
+        gradient_norm_log= past_logs["gradient_norm"].tolist()
+
+        param_mag_keys = [key for key in list(past_logs.keys()) if key not in [ "loss", "lr", "timing", "test_loss", "normalized_err", "normalized_test_err", "gradient_norm"]]
+        parameter_magnitude_log = {key: past_logs[key].tolist() for key in param_mag_keys}
+
+        start_epoch = model_epoch + 1
+
+        model_path = os.path.join(experiment_directory, ws.deep_o_net_folder, ws.parameters_folder, continue_from + ".pth")
+        deeponet.load_state_dict(torch.load(model_path)["model_state_dict"])
+
+        optimizer_path = os.path.join(experiment_directory, ws.deep_o_net_folder, ws.optimizer_parameters_folder, continue_from + ".pth")
+        optimizer_all.load_state_dict(torch.load(optimizer_path)["optimizer_state_dict"])
+
+    logging.info("Start training from epoch {}".format(start_epoch))
+
+    def normalized_error(pred, gt):
+        return torch.norm(pred - gt) / torch.norm(gt)
 
     for epoch in range(start_epoch, num_epochs + 1):
 
@@ -381,7 +417,7 @@ def main_function(experiment_directory):
 
         end = time.time()
 
-        loss_log_epoch.append(np.mean(batch_loss))
+        loss_log_epoch.append(np.mean(loss_log))
         lr_log_epoch.append(optimizer_all.param_groups[0]["lr"])
         normalized_err_log_epoch.append(np.mean(normalized_err_log))
         
@@ -492,9 +528,17 @@ if __name__ == "__main__":
         + "done in this directory as well.",
     )
 
+    parser.add_argument(
+        "--continue-from",
+        "-c",
+        dest="continue_from",
+        default=None,
+        help="If specified, continue training from the given checkpoint.",
+    )
+
     args = parser.parse_args()
 
-    main_function(args.experiment_directory)
+    main_function(args.experiment_directory, args.continue_from)
 
 
 
