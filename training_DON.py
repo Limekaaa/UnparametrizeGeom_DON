@@ -226,6 +226,11 @@ def main_function(experiment_directory, continue_from=None):
         save_model(experiment_directory, "latest.pth", deeponet, epoch)
         save_optimizer(experiment_directory, "latest.pth", optimizer_all, epoch)
 
+    def save_best():
+
+        save_model(experiment_directory, "best.pth", deeponet, epoch)
+        #save_optimizer(experiment_directory, "best.pth", optimizer_all, epoch)
+
     def save_checkpoints(epoch):
 
         save_model(experiment_directory, str(epoch) + ".pth", deeponet, epoch)
@@ -487,6 +492,9 @@ def main_function(experiment_directory, continue_from=None):
                 )
             )
             test_loss_log.append(np.mean(test_loss))
+
+            if test_loss_log[-1] < min(test_loss_log[:-1]):
+                save_best()
             ws.split = "train"
             save_latest(epoch)
 
