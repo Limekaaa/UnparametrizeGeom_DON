@@ -492,9 +492,11 @@ def main_function(experiment_directory, continue_from=None):
                 )
             )
             test_loss_log.append(np.mean(test_loss))
-
-            if test_loss_log[-1] < min(test_loss_log[:-1]):
+            if len(test_loss_log) == 1:
                 save_best()
+            else:
+                if test_loss_log[-1] < min(test_loss_log[:-1]):
+                    save_best()
             ws.split = "train"
             save_latest(epoch)
 
