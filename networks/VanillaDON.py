@@ -26,7 +26,8 @@ class DeepONet(nn.Module):
         dropout_prob:float=0.0, 
         norm_layers:tuple=(), 
         latent_in:tuple=(),
-        weight_norm:bool=False):
+        weight_norm:bool=False,
+        bias:bool=False):
 
         super(DeepONet, self).__init__()
 
@@ -101,6 +102,11 @@ class DeepONet(nn.Module):
         self.trunk_lin_idx = [i for i, layer in enumerate(self.trunk_net) if isinstance(layer, nn.Linear)]
         self.latent_in = [self.trunk_lin_idx[i] for i in self.latent_in]
 
+        if bias:
+            self.bias = nn.Parameter(torch.zeros(1))
+        else:
+            self.bias = 0
+
     def forward(self, branch_input, trunk_input):
         """
         Forward pass for the DeepONet.
@@ -133,5 +139,6 @@ class DeepONet(nn.Module):
 
         out = torch.sum(branch_output * trunk_input, -1) / math.sqrt(self.num_basis_functions) # peut être ajouter ,1 dans la somme pour que la somme se fasse sur les colonnes
         out = out.unsqueeze(1)
+        out = out + self.bias
 
         return out

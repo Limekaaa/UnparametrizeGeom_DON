@@ -22,11 +22,12 @@ class DeepONet(nn.Module):
         num_trunk_inputs:int, 
         branch_dims:list, 
         trunk_dims:list, 
-        dropout:list=None, 
+        dropout:list=[[], []], 
         dropout_prob:float=0.0, 
-        norm_layers:tuple=(), 
-        latent_in:tuple=(),
-        weight_norm:bool=False):
+        norm_layers:list=[[], []], 
+        latent_in:list=[],
+        weight_norm:bool=False,
+        bias:bool=False):
 
         super(DeepONet, self).__init__()
 
@@ -45,10 +46,9 @@ class DeepONet(nn.Module):
         self.num_branch_layers = len(branch_dims) - 1
         self.num_trunk_layers = len(trunk_dims) - 1
 
-        if dropout != ():
-            if len(dropout) != 2:
-                raise ValueError("Dropout must be a tuple of two lists: (branch_dropout, trunk_dropout)")
-            self.branch_dropout, self.trunk_dropout = dropout
+        if len(dropout) != 2:
+            raise ValueError("Dropout must be a tuple of two lists: (branch_dropout, trunk_dropout)")
+        self.branch_dropout, self.trunk_dropout = dropout
 
         # Branch network 
         branch_layers = []
@@ -101,6 +101,11 @@ class DeepONet(nn.Module):
         self.trunk_lin_idx = [i for i, layer in enumerate(self.trunk_net) if isinstance(layer, nn.Linear)]
         self.latent_in = [self.trunk_lin_idx[i] for i in self.latent_in]
 
+        if bias:
+            self.bias = nn.Parameter(torch.zeros(1))
+        else:
+            self.bias = 0
+
     def forward(self, branch_input, trunk_input):
         """
         Forward pass for the DeepONet.
@@ -132,5 +137,6 @@ class DeepONet(nn.Module):
 
         out = torch.sum(branch_output * trunk_input, -1) / math.sqrt(self.num_basis_functions) # peut être ajouter ,1 dans la somme pour que la somme se fasse sur les colonnes
         out = out.unsqueeze(1)
+        out = out + self.bias
 
         return out
