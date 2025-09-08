@@ -395,16 +395,80 @@ python -m torch.distributed.launch --nproc_per_node=4 training_DON.py -e experim
 ### Common Issues
 
 1. **Firedrake Installation**: Ensure Firedrake is properly installed and activated
+   ```bash
+   source firedrake/bin/activate
+   python -c "from firedrake import *; print('Firedrake working!')"
+   ```
+
 2. **Memory Issues**: Reduce batch size or number of samples per scene
+   ```json
+   "ScenesPerBatch": 32,     // Reduce from 64
+   "SamplesPerScene": 100    // Reduce from 200
+   ```
+
 3. **Convergence Problems**: Adjust learning rate schedule or network architecture
-4. **Visualization Errors**: Check matplotlib backend compatibility
+   ```json
+   "LearningRateSchedule": [{
+       "Type": "Step",
+       "Initial": 0.0001,    // Lower initial learning rate
+       "Interval": 1000,     // Longer intervals
+       "Factor": 0.5
+   }]
+   ```
+
+4. **CUDA Errors**: Ensure PyTorch CUDA version matches your CUDA installation
+   ```bash
+   pip install torch --index-url https://download.pytorch.org/whl/cu118
+   ```
+
+5. **Import Errors**: Ensure you're in the correct directory and environment
+   ```bash
+   cd UnparametrizeGeom_DON
+   export PYTHONPATH="${PYTHONPATH}:$(pwd)"
+   ```
 
 ### Performance Optimization
 
-- Use GPU acceleration when available
-- Enable mixed precision training for larger models
-- Optimize data loading with multiple workers
-- Cache preprocessed data for repeated experiments
+- **GPU Acceleration**: Ensure CUDA is available for faster training
+  ```python
+  import torch
+  print(f"CUDA available: {torch.cuda.is_available()}")
+  ```
+- **Memory Management**: Reduce batch size if encountering out-of-memory errors
+- **Data Loading**: Use multiple workers for faster data loading (set in specs.json)
+- **Checkpointing**: Save intermediate results to resume training if interrupted
+
+### Hardware Requirements
+
+- **Minimum**: 8GB RAM, modern CPU
+- **Recommended**: 16GB+ RAM, GPU with 8GB+ VRAM (e.g., RTX 3070, V100)
+- **Storage**: 10-50GB depending on dataset size
+
+### Training Time Estimates
+
+- **Small dataset** (5 geometries, 100 PDE coefficients): ~30 minutes on GPU
+- **Medium dataset** (50 geometries, 1000 PDE coefficients): ~3-5 hours on GPU  
+- **Large dataset** (500+ geometries): ~10+ hours on GPU
+
+## Frequently Asked Questions
+
+**Q: Can I use this for 3D geometries?**
+A: The current implementation is designed for 2D geometries. Extending to 3D would require modifications to the data generators and network architectures.
+
+**Q: How do I add a new type of PDE?**
+A: Create a new file in `data_generators/` following the pattern of `Poisson2D_random_shape.py`. Implement your PDE solver using Firedrake and update the configuration files.
+
+**Q: Can I use pre-existing mesh files?**
+A: Yes, modify the data generators to load your mesh files instead of generating new ones. Ensure they're in Firedrake-compatible format.
+
+**Q: How do I visualize training progress?**
+A: Use `python plot_log.py -e experiments/your_experiment/` to see loss curves and metrics over time.
+
+**Q: What if my geometries are very different from the training examples?**
+A: The model generalizes best to geometries similar to the training distribution. For very different shapes, consider including representative examples in your training set.
+
+**Q: How do I reduce memory usage?**
+A: Reduce `ScenesPerBatch`, `SamplesPerScene`, or set `LoadRam` to false in the configuration to load data on-demand.
 
 ## Contributing
 
