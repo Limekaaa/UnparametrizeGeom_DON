@@ -103,7 +103,10 @@ if __name__ == "__main__":
         decoder.load_state_dict(saved_model_state["model_state_dict"])
     except Exception as e:
         logging.error("Error occurred while loading model state dict: {}".format(e))
-        decoder = arch.Decoder(latent_size, **specs["NetworkSpecs"])
+        decoder = arch.Decoder(
+            latent_size=latent_size,
+            **specs["DeepSDFDecoder"]["NetworkSpecs"]
+        )
         decoder.load_state_dict(saved_model_state["model_state_dict"])
 
     #decoder = decoder.module.cuda()
