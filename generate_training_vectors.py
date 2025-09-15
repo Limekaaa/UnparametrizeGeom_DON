@@ -99,7 +99,13 @@ if __name__ == "__main__":
         map_location=device
     )
 
-    decoder.load_state_dict(saved_model_state["model_state_dict"])
+    try:
+        decoder.load_state_dict(saved_model_state["model_state_dict"])
+    except Exception as e:
+        logging.error("Error occurred while loading model state dict: {}".format(e))
+        decoder = arch.Decoder(latent_size, **specs["NetworkSpecs"])
+        decoder.load_state_dict(saved_model_state["model_state_dict"])
+
     #decoder = decoder.module.cuda()
     decoder = decoder.module.to(device)
 
