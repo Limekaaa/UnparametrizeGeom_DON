@@ -110,7 +110,7 @@ if __name__ == "__main__":
         decoder.load_state_dict(saved_model_state["model_state_dict"])
 
     #decoder = decoder.module.cuda()
-    decoder = decoder.module.to(device)
+    decoder = decoder.to(torch.device(device))
 
     if args.split == "train":
         split = specs["DeepSDFTrainSplit"]
