@@ -8,6 +8,8 @@ experiment_folder = "experiments"
 log_folder = "Logs"
 reconstruction_folder = "Reconstructions"
 
+random_seed = 42
+
 specs = None
 specs_data = None
 deeponet_model = None

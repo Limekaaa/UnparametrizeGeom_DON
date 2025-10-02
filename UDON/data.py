@@ -145,6 +145,7 @@ class PDESamples(torch.utils.data.Dataset):
                 )
                 n_shapes = len(unique_shapes)
             
+            random.seed(ws.random_seed)
             selected_shapes = random.sample(unique_shapes, n_shapes)
             self.npyfiles = [self.npyfiles[i] for i in range(len(self.npyfiles)) if self.shapes_names[i] in selected_shapes]
             self.shapes_names = [os.path.split(os.path.split(path)[0])[1] for path in self.npyfiles]
@@ -164,6 +165,7 @@ class PDESamples(torch.utils.data.Dataset):
                     )
                     n_eq_per_shape = len(shape_files)
                 
+                random.seed(ws.random_seed)
                 selected_files = random.sample(shape_files, n_eq_per_shape)
                 new_npyfiles.extend(selected_files)
                 new_shapes_names.extend([shape_name] * n_eq_per_shape)
