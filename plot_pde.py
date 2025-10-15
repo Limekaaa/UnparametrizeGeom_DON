@@ -93,6 +93,14 @@ if __name__ == "__main__":
         help="The data split to use (train, test)."
     )
 
+    parser.add_argument(
+        "--seed",
+        type=int,
+        default=42,
+        help="The number of reconstructions to perform.",
+        dest="seed"
+    )
+
     args = parser.parse_args()
     experiment_directory = args.experiment_directory
 
@@ -136,6 +144,7 @@ if __name__ == "__main__":
     )
 
     print(f"Number of reconstructions: {args.n_reconstructions}")
+    np.random.seed(args.seed)
     idxs = np.random.choice(len(pde_samples), args.n_reconstructions, replace=False)
 
     for idx in idxs:
