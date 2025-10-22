@@ -404,7 +404,8 @@ def main_function(experiment_directory, continue_from=None):
             #raise Exception("Debugging shapes")
 
             loss = criterion(deeponet_out, pde_gt.cuda()) / pde_data.shape[0]
-
+            if torch.isnan(loss):
+                raise Exception("NaN loss encountered")
             batch_loss += loss.item()
             loss.backward()
             
