@@ -482,7 +482,7 @@ def main_function(experiment_directory, continue_from=None):
 
                     deeponet_out = deeponet(pde_rhs.cuda(), pde_trunk_inputs.cuda())
 
-                    loss = criterion(deeponet_out, pde_gt.cuda()) / pde_data.shape[0]
+                    loss = criterion(deeponet_out, pde_gt.cuda()) #/ pde_data.shape[0]
 
                     test_loss.append(loss.item())
                     normalized_test_err = normalized_error(deeponet_out, pde_gt.cuda())
