@@ -293,9 +293,9 @@ def main_function(experiment_directory, continue_from=None):
     logging.debug(deeponet)
 
     if get_spec_with_default(specs["DeepONet"], "Loss", 'MAE'):
-        criterion = torch.nn.L1Loss(reduction="sum")
+        criterion = torch.nn.L1Loss(reduction="mean")
     elif specs["DeepONet"]["Loss"] == 'MSE':
-        criterion = torch.nn.MSELoss(reduction="sum")
+        criterion = torch.nn.MSELoss(reduction="mean")
 
     optimizer_all = torch.optim.Adam(
         [
@@ -403,7 +403,7 @@ def main_function(experiment_directory, continue_from=None):
 
             #raise Exception("Debugging shapes")
 
-            loss = criterion(deeponet_out, pde_gt.cuda()) / pde_data.shape[0]
+            loss = criterion(deeponet_out, pde_gt.cuda()) #/ pde_data.shape[0]
             if torch.isnan(loss):
                 raise Exception("NaN loss encountered")
             batch_loss += loss.item()
@@ -415,7 +415,15 @@ def main_function(experiment_directory, continue_from=None):
             normalized_err_log.append(normalized_err.item())
 
             if grad_clip is not None:
-                torch.nn.utils.clip_grad_norm_(deeponet.parameters(), grad_clip)
+                current_grad_norm = torch.nn.utils.clip_grad_norm_(deeponet.parameters(), grad_clip).item()
+            else:
+                # Only calculate manually if we didn't clip
+                total_norm = 0
+                for p in deeponet.parameters():
+                    if p.grad is not None:
+                        param_norm = p.grad.data.norm(2)
+                        total_norm += param_norm.item() ** 2
+                current_grad_norm = total_norm ** 0.5
 
             optimizer_all.step()
 
@@ -424,15 +432,9 @@ def main_function(experiment_directory, continue_from=None):
         loss_log_epoch.append(np.mean(loss_log))
         lr_log_epoch.append(optimizer_all.param_groups[0]["lr"])
         normalized_err_log_epoch.append(np.mean(normalized_err_log))
-        
-        total_norm = 0
-        for p in deeponet.parameters():
-            if p.grad is not None:
-                param_norm = p.grad.data.norm(2)
-                total_norm += param_norm.item() ** 2
-        total_norm = total_norm ** 0.5
-        gradient_norm_log.append(total_norm)
+        gradient_norm_log.append(current_grad_norm)
 
+        
         timing_log.append(end - start)
 
         if parameter_magnitude_log is None:
@@ -497,10 +499,8 @@ def main_function(experiment_directory, continue_from=None):
                 if test_loss_log[-1] < min(test_loss_log[:-1]):
                     save_best()
             ws.split = "train"
-            save_latest(epoch)
 
             
-
             np.savez(
                 os.path.join(experiment_directory, ws.deep_o_net_folder, "logs.npz"),
                 loss=loss_log_epoch,
@@ -515,6 +515,8 @@ def main_function(experiment_directory, continue_from=None):
         
         if epoch in checkpoints:
             save_checkpoints(epoch)
+            
+        save_latest(epoch)
 
 
     logging.info("training finished")
