@@ -294,6 +294,9 @@ def main_function(experiment_directory, continue_from=None):
 
     if get_spec_with_default(specs["DeepONet"], "Loss", 'MAE'):
         criterion = torch.nn.L1Loss(reduction="mean")
+    elif specs["DeepONet"]["Loss"] == 'Huber':
+        delta = get_spec_with_default(specs["DeepONet"], "HuberDelta", 1.0)
+        criterion = torch.nn.SmoothL1Loss(beta=delta, reduction="mean")
     elif specs["DeepONet"]["Loss"] == 'MSE':
         criterion = torch.nn.MSELoss(reduction="mean")
 
@@ -515,7 +518,7 @@ def main_function(experiment_directory, continue_from=None):
         
         if epoch in checkpoints:
             save_checkpoints(epoch)
-            
+
         save_latest(epoch)
 
 
