@@ -269,9 +269,11 @@ def main_function(experiment_directory, continue_from=None):
         )
         ws.split = "train"
     else:
+        ws.split = "test"
         test_dataset = UDON.data.PDESamples(
             data_source, test_split, subsample=num_samp_per_scene, load_ram=False
         )
+        ws.split = "train"
 
     num_data_loader_threads = get_spec_with_default(specs["DeepONet"], "DataLoaderThreads", 1)
     logging.debug("loading data with {} threads".format(num_data_loader_threads))

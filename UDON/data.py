@@ -123,12 +123,18 @@ class PDESamples(torch.utils.data.Dataset):
         self.shapes_names = [os.path.split(os.path.split(path)[0])[1] for path in self.npyfiles]
         
         try:
-            n_shapes = ws.specs["DeepONet"]["ShapesToLoad"]
+            if ws.split == "test":
+                n_shapes = -1
+            else:
+                n_shapes = ws.specs["DeepONet"]["ShapesToLoad"]
         except:
             n_shapes = -1
         
         try:
-            n_eq_per_shape = ws.specs["DeepONet"]["EqPerShape"]
+            if ws.split == "test":
+                n_eq_per_shape = -1
+            else:
+                n_eq_per_shape = ws.specs["DeepONet"]["EqPerShape"]
         except:
             n_eq_per_shape = -1
 
