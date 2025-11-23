@@ -1,10 +1,34 @@
 import UDON.workspace as ws
 import matplotlib.pyplot as plt
+import matplotlib.ticker as ticker
 import numpy as np
 import os
 import json 
 
+# --- IMPROVED PLOT STYLING ---
+def set_plot_style():
+    plt.rcParams.update({
+        'font.size': 14,
+        'axes.titlesize': 16,
+        'axes.labelsize': 14,
+        'xtick.labelsize': 12,
+        'ytick.labelsize': 12,
+        'legend.fontsize': 12,
+        'lines.linewidth': 2.5,
+        'figure.figsize': (10, 6),
+        'axes.grid': True,
+        'grid.alpha': 0.3
+    })
+
+# Helper to format axis to 3 significant digits
+def format_axis_func(x, pos):
+    return f'{x:.3g}'
+
+formatter = ticker.FuncFormatter(format_axis_func)
+
 def plot_log(experiment_dir, model, type):
+    set_plot_style() # Apply style
+
     if model == "DeepONet":
         log_file = os.path.join(experiment_dir, ws.deep_o_net_folder, "logs.npz")
         save_path = os.path.join(experiment_dir,ws.deep_o_net_folder, ws.log_folder)
@@ -27,73 +51,97 @@ def plot_log(experiment_dir, model, type):
     except :
         log_freq = 10
 
+    # Create figure/ax explicitly to apply formatters easier
+    fig, ax = plt.subplots()
+
     if type == "loss":
         freq_loss = int(len(logs["loss"]) / len(logs["test_loss"]))
         to_plot = [np.mean(logs["loss"][i:i+freq_loss]) for i in range(0, len(logs["loss"]), freq_loss)]
-        plt.plot(to_plot, label="Train Loss")
-        plt.plot(logs["test_loss"], label="Test Loss")
-        plt.xlabel("Iteration x{}".format(log_freq))
-        plt.ylabel("Loss")
-        plt.title("Loss Comparison")
-        plt.legend()
-        plt.savefig(os.path.join(save_path,"loss_plot.png"))
-        plt.clf()
+        ax.plot(to_plot, label="Train Loss")
+        ax.plot(logs["test_loss"], label="Test Loss")
+        ax.set_xlabel("Iteration x{}".format(log_freq))
+        ax.set_ylabel("Loss")
+        ax.set_title("Loss Comparison")
+        ax.legend(frameon=True, fancybox=True, framealpha=0.9)
+        ax.yaxis.set_major_formatter(formatter) # 3 sig figs
+        plt.savefig(os.path.join(save_path,"loss_plot.png"), dpi=300, bbox_inches='tight')
+        plt.close()
+
     elif type == "learning_rate":
-        plt.plot(logs["lr"], label="Learning Rate")
-        plt.xlabel("Iteration")
-        plt.ylabel("Learning Rate")
-        plt.title("Learning Rate Schedule")
-        plt.legend()
-        plt.savefig(os.path.join(save_path,"learning_rate_plot.png"))
-        plt.clf()
+        ax.plot(logs["lr"], label="Learning Rate")
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Learning Rate")
+        ax.set_title("Learning Rate Schedule")
+        ax.legend(frameon=True, fancybox=True, framealpha=0.9)
+        ax.yaxis.set_major_formatter(formatter)
+        plt.savefig(os.path.join(save_path,"learning_rate_plot.png"), dpi=300, bbox_inches='tight')
+        plt.close()
+
     elif type == "time":
-        plt.plot(logs["timing"], label="Time per Iteration")
-        plt.xlabel("Iteration")
-        plt.ylabel("Time (seconds)")
-        plt.title("Time per Iteration")
-        plt.legend()
-        plt.savefig(os.path.join(save_path,"time_plot.png"))
-        plt.clf()
+        ax.plot(logs["timing"], label="Time per Iteration")
+        ax.set_xlabel("Iteration")
+        ax.set_ylabel("Time (seconds)")
+        ax.set_title("Time per Iteration")
+        ax.legend(frameon=True, fancybox=True, framealpha=0.9)
+        ax.yaxis.set_major_formatter(formatter)
+        plt.savefig(os.path.join(save_path,"time_plot.png"), dpi=300, bbox_inches='tight')
+        plt.close()
+
     elif type == "error":
         freq_err = int(len(logs["normalized_err"]) / len(logs["normalized_test_err"]))
         to_plot = [np.mean(logs["normalized_err"][i:i+freq_err]) for i in range(0, len(logs["normalized_err"]), freq_err)]
-        plt.plot(to_plot, label="Error")
-        plt.plot(logs["normalized_test_err"], label="Test Error")
-        plt.xlabel("Iteration x{}".format(log_freq))
-        plt.ylabel("Error")
-        plt.title("Error per Iteration")
-        plt.legend()
-        plt.savefig(os.path.join(save_path,"error_plot.png"))
-        plt.clf()
+        ax.plot(to_plot, label="Error")
+        ax.plot(logs["normalized_test_err"], label="Test Error")
+        ax.set_xlabel("Iteration x{}".format(log_freq))
+        ax.set_ylabel("Error")
+        ax.set_title("Error per Iteration")
+        ax.legend(frameon=True, fancybox=True, framealpha=0.9)
+        ax.yaxis.set_major_formatter(formatter)
+        plt.savefig(os.path.join(save_path,"error_plot.png"), dpi=300, bbox_inches='tight')
+        plt.close()
+
     elif type == "param_mag":
         param_mags = [key for key in logs if key.startswith("branch") or key.startswith("trunk")]
         for name in param_mags:
-            plt.plot(logs[name], label=name)
-        plt.xlabel("Epoch")
-        plt.ylabel("Magnitude")
-        plt.title("Parameter Magnitude")
-        plt.legend(
-            bbox_to_anchor=(1.05, 1),  # x=1.05 puts it slightly to the right
-            loc='upper left',          # align the top of the legend to the top left corner of its box
-            borderaxespad=0.           # optional, reduces spacing between plot and legend
+            ax.plot(logs[name], label=name)
+        ax.set_xlabel("Epoch")
+        ax.set_ylabel("Magnitude")
+        ax.set_title("Parameter Magnitude")
+        ax.yaxis.set_major_formatter(formatter)
+        ax.legend(
+            bbox_to_anchor=(1.05, 1),  
+            loc='upper left',          
+            borderaxespad=0.,
+            frameon=True, 
+            fancybox=True
         )
-        plt.savefig(os.path.join(save_path,"param_mag_plot.png"), bbox_inches='tight')
-        plt.clf()
+        plt.savefig(os.path.join(save_path,"param_mag_plot.png"), dpi=300, bbox_inches='tight')
+        plt.close()
+
     elif type == "gradient_norm":
         if "gradient_norm" in logs.keys():
-            plt.plot(logs["gradient_norm"], label="Gradient Norm")
-            plt.xlabel("Iteration")
-            plt.ylabel("Gradient Norm")
-            plt.title("Gradient Norm per Iteration")
-            plt.legend()
-            plt.savefig(os.path.join(save_path,"gradient_norm_plot.png"))
-            plt.clf()
+            ax.plot(logs["gradient_norm"], label="Gradient Norm")
+            ax.set_xlabel("Iteration")
+            ax.set_ylabel("Gradient Norm")
+            ax.set_title("Gradient Norm per Iteration")
+            ax.legend(frameon=True, fancybox=True, framealpha=0.9)
+            ax.yaxis.set_major_formatter(formatter)
+            plt.savefig(os.path.join(save_path,"gradient_norm_plot.png"), dpi=300, bbox_inches='tight')
+            plt.close()
         else:
             raise ValueError("Gradient norm log not found in the logs.")
+            
     elif type == "all":
         types = ["loss", "learning_rate", "time", "error", "param_mag", "gradient_norm"]
+        # Note: We don't need to loop recursively here creating figures because the functions 
+        # above now create their own figures/axes. We can just call plot_log recursively.
+        # However, to prevent open figure warning, we ensure closes happen.
+        plt.close('all') 
         for t in types:
-            plot_log(experiment_dir, model, t)
+            try:
+                plot_log(experiment_dir, model, t)
+            except Exception as e:
+                print(f"Could not plot {t}: {e}")
     else:
         raise ValueError("Type must be one of 'loss', 'learning_rate', 'time', 'error', or 'all'.")
 
@@ -106,9 +154,7 @@ if __name__ == "__main__":
         "-e", 
         dest="experiment_directory",
         required=True,
-        help="The experiment directory. This directory should include "
-        + "experiment specifications in 'specs.json', and logging will be "
-        + "done in this directory as well.",
+        help="The experiment directory.",
     )
 
     parser.add_argument(
@@ -116,7 +162,7 @@ if __name__ == "__main__":
         "-m",
         dest="model",
         default="DeepONet",
-        help="The model to plot logs from. If 'DeepONet', training logs from DeepONet will be used, if 'DeepSDF', logs from DeepSDF will be used.",
+        help="The model to plot logs from.",
     )
 
     parser.add_argument(
@@ -124,7 +170,7 @@ if __name__ == "__main__":
         "-t",
         dest="type",
         default="all",
-        help="Type of log to plot. Options are 'loss', 'learning_rate', 'time', 'lat_mag', 'param_mag', or 'all'. Default is 'all'.",
+        help="Type of log to plot.",
     )
 
     args = parser.parse_args()
