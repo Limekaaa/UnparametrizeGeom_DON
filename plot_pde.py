@@ -3,6 +3,7 @@ import torch
 import matplotlib.pyplot as plt
 import matplotlib.tri as mtri
 import matplotlib.tri as tri
+import matplotlib.ticker as ticker
 
 import json
 import os
@@ -11,6 +12,17 @@ from networks.MetaLearningDON import DeepONet
 import UDON
 import UDON.workspace as ws
 
+# --- IMPROVED PLOT STYLING ---
+plt.rcParams.update({
+    'font.size': 14,
+    'axes.titlesize': 18,
+    'axes.labelsize': 16,
+    'xtick.labelsize': 14,
+    'ytick.labelsize': 14,
+    'legend.fontsize': 14,
+    'lines.linewidth': 2,
+    'figure.dpi': 300  # Default high DPI for display/save
+})
 
 def get_sol(pde_sample, idx):
     sol = pde_sample[idx][0][:, -1]
@@ -51,55 +63,12 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description="Train a DeepONet model for PDEs")
 
-    parser.add_argument(
-        "--experiment",
-        "-e", 
-        dest="experiment_directory",
-        required=True,
-        help="The experiment directory. This directory should include "
-        + "experiment specifications in 'specs.json', and logging will be "
-        + "done in this directory as well.",
-    )
-
-    parser.add_argument(
-        "--checkpoint_sdf",
-        "-cs",
-        dest="checkpoint_sdf",
-        default="latest",
-        help="The checkpoint of DeepSDF model to load. If 'latest', the most recent checkpoint will be used."
-    )
-
-    parser.add_argument(
-        "--checkpoint_don",
-        "-cd",
-        dest="checkpoint_don",
-        default="latest",
-        help="The checkpoint of DeepONet model to load. If 'latest', the most recent checkpoint will be used."
-    )
-
-    parser.add_argument(
-        "--n_reconstructions",
-        type=int,
-        default=1,
-        help="The number of reconstructions to perform.",
-        dest="n_reconstructions"
-    )
-
-    parser.add_argument(
-        "--split",
-        "-s",
-        dest="split",
-        default="test",
-        help="The data split to use (train, test)."
-    )
-
-    parser.add_argument(
-        "--seed",
-        type=int,
-        default=42,
-        help="The number of reconstructions to perform.",
-        dest="seed"
-    )
+    parser.add_argument("--experiment", "-e", dest="experiment_directory", required=True, help="The experiment directory.")
+    parser.add_argument("--checkpoint_sdf", "-cs", dest="checkpoint_sdf", default="latest", help="DeepSDF Checkpoint")
+    parser.add_argument("--checkpoint_don", "-cd", dest="checkpoint_don", default="latest", help="DeepONet Checkpoint")
+    parser.add_argument("--n_reconstructions", type=int, default=1, help="Number of reconstructions", dest="n_reconstructions")
+    parser.add_argument("--split", "-s", dest="split", default="test", help="Data split (train, test)")
+    parser.add_argument("--seed", type=int, default=42, help="Random seed", dest="seed")
 
     args = parser.parse_args()
     experiment_directory = args.experiment_directory
@@ -138,10 +107,7 @@ if __name__ == "__main__":
     else:
         raise ValueError("Split must be either 'train' or 'test'.")
 
-    pde_samples = UDON.data.PDESamples(
-        data_source,
-        split,
-    )
+    pde_samples = UDON.data.PDESamples(data_source, split)
 
     print(f"Number of reconstructions: {args.n_reconstructions}")
     np.random.seed(args.seed)
@@ -165,34 +131,63 @@ if __name__ == "__main__":
         vmin = min(preds_np.min(), gt_np.min())
         vmax = max(preds_np.max(), gt_np.max())
 
+        # --- GENERATE 5 TICKS FOR LEGEND ---
+        ticks_loc = np.linspace(vmin, vmax, 5)
+
         # Plot predictions
-        plt.figure(figsize=(12, 5))
+        fig = plt.figure(figsize=(14, 6)) # Increased size for better readability
 
         plt.subplot(1, 2, 1)
         contour1 = plt.tricontourf(triang, preds_np, levels=100, cmap='viridis', vmin=vmin, vmax=vmax)
-        plt.colorbar(contour1, label='Prediction')
+        # Force 5 ticks, formatted to 3 significant figures ('%.3g')
+        cbar1 = plt.colorbar(contour1, ticks=ticks_loc, format='%.3g')
+        cbar1.set_label('Prediction', fontsize=16)
+        cbar1.ax.tick_params(labelsize=14) 
+        
         plt.title("Predictions")
         plt.xlabel("x")
         plt.ylabel("y")
+        plt.axis('equal') # Usually good for PDE reconstruction on 2D domains
 
         # Plot ground truth
         plt.subplot(1, 2, 2)
         contour2 = plt.tricontourf(triang, gt_np, levels=100, cmap='viridis', vmin=vmin, vmax=vmax)
-        plt.colorbar(contour2, label='Ground Truth')
+        # Force 5 ticks, formatted to 3 significant figures
+        cbar2 = plt.colorbar(contour2, ticks=ticks_loc, format='%.3g')
+        cbar2.set_label('Ground Truth', fontsize=16)
+        cbar2.ax.tick_params(labelsize=14)
+
         plt.title("Ground Truth")
         plt.xlabel("x")
         plt.ylabel("y")
+        plt.axis('equal')
 
         plt.tight_layout()
         os.makedirs(os.path.join(experiment_directory, ws.deep_o_net_folder, ws.reconstruction_folder, args.split), exist_ok=True)
-        plt.savefig(os.path.join(experiment_directory, ws.deep_o_net_folder, ws.reconstruction_folder, args.split, f"reconstruction_{pde_samples.shapes_names[idx]}.png"))
+        
+        # Save with High DPI
+        plt.savefig(os.path.join(experiment_directory, ws.deep_o_net_folder, ws.reconstruction_folder, args.split, f"reconstruction_{pde_samples.shapes_names[idx]}.png"), dpi=300, bbox_inches='tight')
         plt.close()
 
-        contour1 = plt.tricontourf(triang, abs((preds_np - gt_np) / (np.max(gt_np) - np.min(gt_np))), levels=100, cmap='viridis')#, vmin=vmin, vmax=vmax)
-        plt.colorbar(contour1, label='Scaled absolute error')
+        # --- ERROR PLOT ---
+        plt.figure(figsize=(8, 6))
+        
+        error_vals = abs((preds_np - gt_np) / (np.max(gt_np) - np.min(gt_np)))
+        err_min = error_vals.min()
+        err_max = error_vals.max()
+        err_ticks = np.linspace(err_min, err_max, 5)
+
+        contour_err = plt.tricontourf(triang, error_vals, levels=100, cmap='viridis')
+        
+        # Force 5 ticks, 3 sig figs for error plot too
+        cbar_err = plt.colorbar(contour_err, ticks=err_ticks, format='%.3g')
+        cbar_err.set_label('Scaled absolute error', fontsize=16)
+        cbar_err.ax.tick_params(labelsize=14)
+
         plt.title("Scaled absolute error")
         plt.xlabel("x")
         plt.ylabel("y")
-        plt.savefig(os.path.join(experiment_directory, ws.deep_o_net_folder, ws.reconstruction_folder, args.split, f"reconstruction_error_{pde_samples.shapes_names[idx]}.png"))
-        plt.close()
+        plt.axis('equal')
 
+        plt.savefig(os.path.join(experiment_directory, ws.deep_o_net_folder, ws.reconstruction_folder, args.split, f"reconstruction_error_{pde_samples.shapes_names[idx]}.png"), dpi=300, bbox_inches='tight')
+        plt.close()
