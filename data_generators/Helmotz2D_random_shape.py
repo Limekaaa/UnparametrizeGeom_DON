@@ -109,7 +109,7 @@ class Helmholtz2D_random_shape:
         return results
 
 
-def PDEDataGenerator_Helmholtz(specs_data, args):
+def PDEDataGenerator(specs_data, args):
     """
     Generate data for Helmholtz problems on a folder of meshes.
 
