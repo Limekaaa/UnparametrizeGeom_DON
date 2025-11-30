@@ -186,7 +186,7 @@ def PDEDataGenerator(specs_data, args):
                 count = sum([s.count(f_name) for s in files_path_to_save])
                 if count > 0:
                     f_name = f"k_{k_val:.4f}_{count}.npz"
-                np.savez(os.path.join(path_to_save, f_name), k=np.array(k_val), sol=sol, coords=coords)
+                np.savez(os.path.join(path_to_save, f_name), rhs=np.array(k_val), sol=sol, coords=coords)
 
         logging.info(f"Helmholtz Data for mesh {msh_filename} generated and saved.")
 
