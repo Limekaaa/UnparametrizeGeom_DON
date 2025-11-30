@@ -40,6 +40,7 @@ class Helmholtz2D_random_shape:
         self.coords = mesh.coordinates.dat.data
         self.save_sol = save_sol
         self.bc_val = bc_val
+        self.n_source_term = n_source_term
 
         # default solver params (Helmholtz is indefinite -> GMRES preconditioned by LU is a safe start)
         if solver_parameters is None:
