@@ -97,7 +97,7 @@ class DeepONet(nn.Module):
 
             if layer in self.trunk_norm_layers:
                 trunk_layers.append(nn.LayerNorm(out_dim))
-            trunk_layers.append(nn.ReLU())
+            trunk_layers.append(nn.SiLU())
 
         self.trunk_net = nn.Sequential(*trunk_layers)
         self.trunk_lin_idx = [i for i, layer in enumerate(self.trunk_net) if isinstance(layer, nn.Linear)]
