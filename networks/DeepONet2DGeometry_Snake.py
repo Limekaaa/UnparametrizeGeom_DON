@@ -13,13 +13,15 @@ class SnakeActivation(nn.Module):
     Args:
         alpha (float): Frequency parameter for the Snake activation.
     """
-    
-    def __init__(self, alpha: float = 1.0):
-        super(SnakeActivation, self).__init__()
-        self.alpha = alpha
+    def __init__(self, in_features, alpha=0.5):
+        super().__init__()
+        # 'alpha' controls the frequency of the wiggle
+        # It is learnable, allowing the net to tune its own "waviness"
+        self.alpha = nn.Parameter(torch.ones(in_features) * alpha)
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
-        return x + (1.0 / self.alpha) * torch.sin(self.alpha * x) ** 2
+    def forward(self, x):
+        # Formula: x + (1/a) * sin^2(ax)
+        return x + (1.0 / (self.alpha + 1e-9)) * torch.pow(torch.sin(self.alpha * x), 2)
 
 class DeepONet(nn.Module):
     """
