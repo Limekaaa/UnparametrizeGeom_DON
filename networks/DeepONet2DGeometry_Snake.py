@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import math
+import numpy as np
 
 # https://arxiv.org/abs/2006.08195
 
@@ -13,11 +14,15 @@ class SnakeActivation(nn.Module):
     Args:
         alpha (float): Frequency parameter for the Snake activation.
     """
-    def __init__(self, in_features, alpha=0.5):
+    def __init__(self, in_features=-1, alpha=0.5, alpha_low=0.5, alpha_high=50.0):
         super().__init__()
         # 'alpha' controls the frequency of the wiggle
         # It is learnable, allowing the net to tune its own "waviness"
-        self.alpha = nn.Parameter(torch.ones(in_features) * alpha)
+        if in_features > 0:
+            alphas = np.exp(np.linspace(np.log(alpha_low), np.log(alpha_high), in_features))
+            self.alpha = nn.Parameter(torch.tensor(alphas, dtype=torch.float32))
+        else:
+            self.alpha = nn.Parameter(torch.tensor(alpha))
 
     def forward(self, x):
         # Formula: x + (1/a) * sin^2(ax)
@@ -47,7 +52,8 @@ class DeepONet(nn.Module):
         norm_layers:list=[[], []], 
         latent_in:list=[],
         weight_norm:bool=False,
-        bias:bool=False):
+        bias:bool=False,
+        multi_scale:bool=False):
 
         super(DeepONet, self).__init__()
 
@@ -115,7 +121,10 @@ class DeepONet(nn.Module):
 
             if layer in self.trunk_norm_layers:
                 trunk_layers.append(nn.LayerNorm(out_dim))
-            trunk_layers.append(SnakeActivation())
+            if multi_scale:
+                trunk_layers.append(SnakeActivation(in_features=out_dim))
+            else:
+                trunk_layers.append(SnakeActivation())
 
         self.trunk_net = nn.Sequential(*trunk_layers)
         self.trunk_lin_idx = [i for i, layer in enumerate(self.trunk_net) if isinstance(layer, nn.Linear)]
