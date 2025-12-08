@@ -105,7 +105,7 @@ class Helmholtz2D_random_shape:
 
                 # Extract nodal values (Function.dat.data matches mesh.coordinates ordering)
                 uh_vals = uh.dat.data.copy()
-                results.append((k, uh_vals))
+                results.append(((k, *theta), uh_vals))
 
         return results
 
@@ -181,12 +181,12 @@ def PDEDataGenerator(specs_data, args):
             os.makedirs(path_to_save, exist_ok=True)
             files_path_to_save = os.listdir(path_to_save)
 
-            for i, (k_val, sol) in enumerate(data):
-                f_name = f"k_{k_val:.4f}.npz"
+            for i, (rhs, sol) in enumerate(data):
+                f_name = f"k_{rhs[0]:.4f}.npz"
                 count = sum([s.count(f_name) for s in files_path_to_save])
                 if count > 0:
-                    f_name = f"k_{k_val:.4f}_{count}.npz"
-                np.savez(os.path.join(path_to_save, f_name), rhs=np.array(k_val), sol=sol, coords=coords)
+                    f_name = f"k_{rhs[0]:.4f}_{count}.npz"
+                np.savez(os.path.join(path_to_save, f_name), rhs=np.array(rhs), sol=sol, coords=coords)
 
         logging.info(f"Helmholtz Data for mesh {msh_filename} generated and saved.")
 
