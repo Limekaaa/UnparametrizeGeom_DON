@@ -389,10 +389,10 @@ def main_function(experiment_directory, continue_from=None):
             pde_data = pde_data.cuda()
 
             pde_gt = pde_data[:, :,-1].unsqueeze(1)
-            pde_rhs = pde_data[:, :, -1-specs["DeepONet"]["num_branch_inputs"]:-1]
-            pde_rhs = pde_rhs.reshape(pde_rhs.shape[0], pde_rhs.shape[1], specs["DeepONet"]["num_branch_inputs"])
+            pde_rhs = pde_data[:, :, -1-specs["DeepONet"]["NetworkSpecs"]["num_branch_inputs"]:-1]
+            pde_rhs = pde_rhs.reshape(pde_rhs.shape[0], pde_rhs.shape[1], specs["DeepONet"]["NetworkSpecs"]["num_branch_inputs"])
 
-            pde_trunk_inputs = pde_data[:, :, :-1-specs["DeepONet"]["num_branch_inputs"]]
+            pde_trunk_inputs = pde_data[:, :, :-1-specs["DeepONet"]["NetworkSpecs"]["num_branch_inputs"]]
 
             batch_loss = 0.0
             optimizer_all.zero_grad()       
