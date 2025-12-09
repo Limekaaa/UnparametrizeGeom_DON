@@ -45,17 +45,20 @@ def get_lat_vec(pde_samples, idx):
     lat_vec = trunk_inputs[:, :-2]
     return lat_vec
 
-def get_preds(pde_samples, deeponet,idx):
-    pde_rhs = get_rhs(pde_samples, idx).unsqueeze(1).cuda()
+def get_preds(pde_samples, deeponet, idx):
+    # Change unsqueeze(1) to unsqueeze(0) to align batch dimensions
+    pde_rhs = get_rhs(pde_samples, idx).unsqueeze(0).cuda() 
+    
     pde_trunk_inputs = get_trunk_inputs(pde_samples, idx).cuda()
     pde_data = get_coords(pde_samples, idx).cuda()
     pde_gt = get_sol(pde_samples, idx).unsqueeze(1).cuda()
     
     pde_trunk_inputs = pde_trunk_inputs.unsqueeze(0)  # Add batch dimension
+    
+    # Now both inputs are [1, 1024, ...]
     deeponet_out = deeponet(pde_rhs, pde_trunk_inputs)
 
     return deeponet_out, pde_gt, pde_data
-
 
 if __name__ == "__main__":
 
