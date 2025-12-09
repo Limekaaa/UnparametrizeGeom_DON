@@ -29,11 +29,11 @@ def get_sol(pde_sample, idx):
     return sol
 
 def get_rhs(pde_sample, idx):
-    coords = pde_sample[idx][0][:, -2]
+    coords = pde_sample[idx][0][:, -1-specs["DeepONet"]["NetworkSpecs"]["num_branch_inputs"]:-1]
     return coords
 
 def get_trunk_inputs(pde_sample, idx):
-    trunk_inputs = pde_sample[idx][0][:, :-2]
+    trunk_inputs = pde_sample[idx][0][:, :-1-specs["DeepONet"]["NetworkSpecs"]["num_branch_inputs"]]
     return trunk_inputs
 
 def get_coords(pde_samples, idx):
