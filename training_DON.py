@@ -474,13 +474,14 @@ def main_function(experiment_directory, continue_from=None):
                     num_workers=num_data_loader_threads,
                     drop_last=False,
                 ):
+
                     pde_data = pde_data.cuda()
 
                     pde_gt = pde_data[:, :,-1].unsqueeze(1)
-                    pde_rhs = pde_data[:, :, -2]
-                    pde_rhs = pde_rhs.reshape(pde_rhs.shape[0], pde_rhs.shape[1], 1)
+                    pde_rhs = pde_data[:, :, -1-specs["DeepONet"]["NetworkSpecs"]["num_branch_inputs"]:-1]
+                    pde_rhs = pde_rhs.reshape(pde_rhs.shape[0], pde_rhs.shape[1], specs["DeepONet"]["NetworkSpecs"]["num_branch_inputs"])
 
-                    pde_trunk_inputs = pde_data[:, :, :-2]
+                    pde_trunk_inputs = pde_data[:, :, :-1-specs["DeepONet"]["NetworkSpecs"]["num_branch_inputs"]]
 
                     deeponet_out = deeponet(pde_rhs.cuda(), pde_trunk_inputs.cuda())
 
