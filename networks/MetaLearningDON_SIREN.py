@@ -102,7 +102,10 @@ class DeepONet(nn.Module):
 
             linear_layer = nn.Linear(trunk_dims[layer], out_dim)
             n = trunk_dims[layer]
-            limit = torch.sqrt(torch.tensor(6.0 / n))
+            if layer != 0:
+                limit = torch.sqrt(torch.tensor(6.0 / n))
+            else:
+                limit = torch.tensor(1.0/n)
             nn.init.uniform_(linear_layer.weight, -limit, limit)
 
 
